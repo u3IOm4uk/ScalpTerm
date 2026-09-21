@@ -12,7 +12,7 @@
   };
   let modules = [], serial = 0, scale = 1, selected = new Set(), active = null;
   let locked = false, rowHeight = 20, digitSize = 13, noMotion = false;
-  let zoom = 'fit', history = [], drag = null, maximized = null, toastTimer;
+  let zoom = 'fit', theme = 'system', history = [], drag = null, maximized = null, toastTimer;
   let tree = null, splitSerial = 0, splitDrag = null, canvasW = W, canvasH = H;
   const elements = new Map();
   const fmt = (v, d) => v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:false});
@@ -23,7 +23,7 @@
   function snapshot() { return JSON.stringify({modules,tree}); }
   function remember() { history.push(snapshot()); if(history.length>30) history.shift(); $('undo').disabled=false; }
   function save() {
-      try {localStorage.setItem(KEY,JSON.stringify({modules,tree,locked,rowHeight,digitSize,noMotion,zoom})); $('save-state').textContent='Розкладку збережено локально';}
+      try {localStorage.setItem(KEY,JSON.stringify({modules,tree,locked,rowHeight,digitSize,noMotion,zoom,theme})); $('save-state').textContent='Розкладку збережено локально';}
       catch { $('save-state').textContent='Збереження недоступне'; }
   }
   function initial() {
@@ -62,14 +62,22 @@
       validate(s.tree);if(!validTree||treeIds.length!==ids.size||new Set(treeIds).size!==ids.size||!treeIds.every(id=>ids.has(id)))return false;
       modules=s.modules;tree=s.tree;splitSerial=Math.max(0,...splitIds);serial=Math.max(...modules.map(m=>m.id)); locked=!!s.locked;
       rowHeight=[18,20,24].includes(s.rowHeight)?s.rowHeight:20; digitSize=[12,13,14].includes(s.digitSize)?s.digitSize:13;
-      noMotion=!!s.noMotion; zoom=['fit','1','0.75','0.5'].includes(s.zoom)?s.zoom:'fit'; return true;
+      noMotion=!!s.noMotion; zoom=['fit','1','0.75','0.5'].includes(s.zoom)?s.zoom:'fit'; theme=['system','light','dark'].includes(s.theme)?s.theme:'system'; return true;
     } catch { return false; }
+  }
+  function cssToken(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function resolvedTheme() { return theme==='system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light') : theme; }
+  function applyTheme(redraw=true) {
+    document.documentElement.dataset.theme=resolvedTheme();
+    document.documentElement.style.colorScheme=resolvedTheme();
+    if($('theme')) $('theme').value=theme;
+    if(redraw) modules.forEach(m=>{const el=elements.get(m.id);if(el)redrawModule(m,el);});
   }
   function applySettings() {
     document.documentElement.style.setProperty('--row',rowHeight+'px');
     document.documentElement.style.setProperty('--digits',digitSize+'px');
     document.body.classList.toggle('locked',locked); document.body.classList.toggle('no-motion',noMotion);
-    $('density').value=String(rowHeight); $('font-size').value=String(digitSize); $('reduced-motion').checked=noMotion; $('zoom').value=zoom;
+    $('density').value=String(rowHeight); $('font-size').value=String(digitSize); $('reduced-motion').checked=noMotion; $('zoom').value=zoom; applyTheme(false);
     $('lock').setAttribute('aria-pressed',String(locked)); $('lock').textContent=locked?'Розкладку зафіксовано':'Фіксувати розкладку';
   }
   function fit() {
@@ -131,19 +139,19 @@
     const canvas=el.querySelector('canvas'); if(!canvas)return;
     const w=canvas.clientWidth,h=canvas.clientHeight; if(!w||!h)return;
     const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
-    const c=canvas.getContext('2d');c.scale(dpr,dpr);c.fillStyle='#1f1f1f';c.fillRect(0,0,w,h);
+    const c=canvas.getContext('2d');c.scale(dpr,dpr);c.fillStyle=cssToken('--chart-bg');c.fillRect(0,0,w,h);
     el.querySelectorAll('[data-time]').forEach(b=>b.classList.toggle('on',b.dataset.time===m.timeframe));
     const info=instruments[m.symbol],rng=random(seedOf(m.symbol+m.market+m.timeframe));
     const pw=w-69,ph=h-32,n=Math.max(24,Math.floor(pw/7)),base=info.price*(m.market==='F'?1:.9994),range=info.range;
-    c.strokeStyle='#303030';c.lineWidth=1;c.font='10px "Segoe UI",sans-serif';
-    for(let i=0;i<5;i++){const y=18+i*(ph-32)/4;c.beginPath();c.moveTo(0,y+.5);c.lineTo(pw,y+.5);c.stroke();c.fillStyle='#a8a8a8';c.fillText(fmt(base+range*(.5-i/4),info.digits),pw+7,y+3);}
-    for(let i=0;i<5;i++){const x=14+i*(pw-28)/4;c.strokeStyle='#292929';c.beginPath();c.moveTo(x,0);c.lineTo(x,ph);c.stroke();c.fillStyle='#8f8f8f';c.fillText(['14:00','14:15','14:30','14:45','15:00'][i],Math.max(3,x-13),h-10);}
+    c.strokeStyle=cssToken('--chart-grid');c.lineWidth=1;c.font='10px "Segoe UI",sans-serif';
+    for(let i=0;i<5;i++){const y=18+i*(ph-32)/4;c.beginPath();c.moveTo(0,y+.5);c.lineTo(pw,y+.5);c.stroke();c.fillStyle=cssToken('--chart-axis');c.fillText(fmt(base+range*(.5-i/4),info.digits),pw+7,y+3);}
+    for(let i=0;i<5;i++){const x=14+i*(pw-28)/4;c.strokeStyle=cssToken('--chart-grid-subtle');c.beginPath();c.moveTo(x,0);c.lineTo(x,ph);c.stroke();c.fillStyle=cssToken('--chart-axis-muted');c.fillText(['14:00','14:15','14:30','14:45','15:00'][i],Math.max(3,x-13),h-10);}
     let prev=.58;const candles=[];
     for(let i=0;i<n;i++){let close=Math.max(.13,Math.min(.86,prev+(rng()-.49)*.12 + Math.sin(i*.25)*.01));const open=prev;const high=Math.max(open,close)+rng()*.055,low=Math.min(open,close)-rng()*.05; candles.push({open,close,high,low,volume:rng()});prev=close;}
     const xStep=(pw-14)/n, y=v=>18+(1-v)*(ph-36);
-    candles.forEach((v,i)=>{const x=8+i*xStep,up=v.close>=v.open,col=up?'#54b399':'#d86c7f';c.strokeStyle=col;c.beginPath();c.moveTo(x+.5,y(v.high));c.lineTo(x+.5,y(v.low));c.stroke();c.fillStyle=col;c.fillRect(x-xStep*.3,Math.min(y(v.open),y(v.close)),Math.max(2,xStep*.6),Math.max(1,Math.abs(y(v.open)-y(v.close))));c.globalAlpha=.2;c.fillRect(x-xStep*.3,ph-v.volume*24,xStep*.6,v.volume*24);c.globalAlpha=1;});
-    const lastY=y(candles.at(-1).close);c.setLineDash([3,4]);c.strokeStyle='#54b39977';c.beginPath();c.moveTo(0,lastY);c.lineTo(pw,lastY);c.stroke();c.setLineDash([]);c.fillStyle='#245c4f';c.fillRect(pw,lastY-9,69,18);c.fillStyle='#e0f5ef';c.font='11px "Segoe UI",sans-serif';c.fillText(fmt(base+(candles.at(-1).close-.5)*range,info.digits),pw+5,lastY+4);
-    c.fillStyle='#8a8a8a';c.font='10px "Segoe UI",sans-serif';c.fillText('ДЕМО',10,14);
+    candles.forEach((v,i)=>{const x=8+i*xStep,up=v.close>=v.open,col=up?cssToken('--buy'):cssToken('--sell');c.strokeStyle=col;c.beginPath();c.moveTo(x+.5,y(v.high));c.lineTo(x+.5,y(v.low));c.stroke();c.fillStyle=col;c.fillRect(x-xStep*.3,Math.min(y(v.open),y(v.close)),Math.max(2,xStep*.6),Math.max(1,Math.abs(y(v.open)-y(v.close))));c.globalAlpha=.2;c.fillRect(x-xStep*.3,ph-v.volume*24,xStep*.6,v.volume*24);c.globalAlpha=1;});
+    const lastY=y(candles.at(-1).close);c.setLineDash([3,4]);c.strokeStyle=cssToken('--chart-last-line');c.beginPath();c.moveTo(0,lastY);c.lineTo(pw,lastY);c.stroke();c.setLineDash([]);c.fillStyle=cssToken('--chart-last-bg');c.fillRect(pw,lastY-9,69,18);c.fillStyle=cssToken('--chart-last-text');c.font='11px "Segoe UI",sans-serif';c.fillText(fmt(base+(candles.at(-1).close-.5)*range,info.digits),pw+5,lastY+4);
+    c.fillStyle=cssToken('--chart-axis-muted');c.font='10px "Segoe UI",sans-serif';c.fillText('ДЕМО',10,14);
   }
   function drawDom(m,el) {
     const grid=el.querySelector('.dom-grid');if(!grid)return;
@@ -169,6 +177,7 @@
     const caption=document.createElement('span');caption.className='axis-captions';caption.textContent='← історія угод';grid.append(caption);
   }
   function redraw(m,el){if(m.type==='dom')drawDom(m,el);else drawChart(m,el);}
+  const redrawModule=redraw;
   function exitMax() {
     if(!maximized)return;
     const m=modules.find(x=>x.id===maximized),el=elements.get(maximized);if(m&&el){el.classList.remove('maximized');el.style.transform='';setRect(el,m);redraw(m,el);}maximized=null;scene.classList.remove('focusing');updateSelection();
@@ -248,6 +257,7 @@
     selected=new Set([id]);active=id;render();save();$('add-dialog').close();
   };
   $('zoom').onchange=e=>{exitMax();zoom=e.target.value;fit();save();};
+  $('theme').onchange=e=>{theme=e.target.value;applyTheme();save();};
   $('density').onchange=e=>{rowHeight=Number(e.target.value);applySettings();modules.forEach(m=>redraw(m,elements.get(m.id)));save();};
   $('font-size').onchange=e=>{digitSize=Number(e.target.value);applySettings();save();};
   $('reduced-motion').onchange=e=>{noMotion=e.target.checked;applySettings();save();};
@@ -257,6 +267,8 @@
     const tip=$('tooltip');tip.textContent=target.dataset.tip;tip.hidden=false;tip.style.left=Math.max(8,Math.min(e.clientX+14,window.innerWidth-tip.offsetWidth-10))+'px';tip.style.top=Math.max(8,Math.min(e.clientY+14,window.innerHeight-tip.offsetHeight-30))+'px';
   });scene.addEventListener('pointerleave',()=>$('tooltip').hidden=true);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){exitMax();closeMenu();$('tooltip').hidden=true;}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.target.closest('input,select')){e.preventDefault();$('undo').click();}});
+  const themeMedia=window.matchMedia('(prefers-color-scheme: dark)');
+  themeMedia.addEventListener?.('change',()=>{if(theme==='system')applyTheme();});
   window.addEventListener('resize',()=>{exitMax();fit();});
   if(!restore())initial();applySettings();render();
 })();

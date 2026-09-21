@@ -382,3 +382,277 @@ dialog::backdrop{background:rgba(0,0,0,.56)}
 #viewport{height:calc(100vh - 60px)}
 @media(max-width:1100px){.commandbar .toolbar-note{display:none}}
 @media(max-width:900px){.commandbar .workspace-name,.commandbar .version{display:none}.commandbar .demo{font-size:0}.commandbar .demo i{margin-right:0}}
+
+
+/* Fluent 2 semantic theme layer */
+:root,
+:root[data-theme="dark"]{
+  --surface-app:#141414;
+  --surface-canvas:#181818;
+  --surface-module:#1f1f1f;
+  --surface-header:#242424;
+  --surface-subtle:#1b1b1b;
+  --surface-hover:#2b2b2b;
+  --surface-pressed:#333333;
+  --surface-active-header:#202b36;
+  --stroke-subtle:#2e2e2e;
+  --stroke-default:#3d3d3d;
+  --stroke-strong:#565656;
+  --fg-primary:#f5f5f5;
+  --fg-secondary:#d6d6d6;
+  --fg-muted:#adadad;
+  --fg-disabled:#757575;
+  --brand:#479ef5;
+  --brand-fill:#0f6cbd;
+  --brand-hover:#115ea3;
+  --brand-pressed:#0c3b5e;
+  --brand-subtle:#479ef51f;
+  --selection-subtle:#479ef518;
+  --buy:#54b399;
+  --buy-subtle:#54b39922;
+  --sell:#d86c7f;
+  --sell-subtle:#d86c7f22;
+  --price-bg:#202020;
+  --depth-bg:#1d1d1d;
+  --best-buy-bg:#20342f;
+  --best-buy-fg:#d5f5eb;
+  --best-sell-bg:#3a2429;
+  --best-sell-fg:#ffd9df;
+  --flyout-solid:#252525;
+  --flyout-acrylic:rgba(37,37,37,.78);
+  --dialog-surface:#242424;
+  --smoke:rgba(0,0,0,.56);
+  --shadow-active:0 2px 8px rgba(0,0,0,.22);
+  --shadow-flyout:0 8px 24px rgba(0,0,0,.42),0 2px 8px rgba(0,0,0,.28);
+  --chart-bg:#1f1f1f;
+  --chart-grid:#303030;
+  --chart-grid-subtle:#292929;
+  --chart-axis:#a8a8a8;
+  --chart-axis-muted:#8f8f8f;
+  --chart-last-line:#54b39977;
+  --chart-last-bg:#245c4f;
+  --chart-last-text:#e0f5ef;
+}
+
+:root[data-theme="light"]{
+  --surface-app:#f3f3f3;
+  --surface-canvas:#ebebeb;
+  --surface-module:#ffffff;
+  --surface-header:#f7f7f7;
+  --surface-subtle:#fafafa;
+  --surface-hover:#f0f0f0;
+  --surface-pressed:#e5e5e5;
+  --surface-active-header:#eef6fc;
+  --stroke-subtle:#e0e0e0;
+  --stroke-default:#c9c9c9;
+  --stroke-strong:#9e9e9e;
+  --fg-primary:#242424;
+  --fg-secondary:#424242;
+  --fg-muted:#616161;
+  --fg-disabled:#9e9e9e;
+  --brand:#0f6cbd;
+  --brand-fill:#0f6cbd;
+  --brand-hover:#115ea3;
+  --brand-pressed:#0c3b5e;
+  --brand-subtle:#0f6cbd14;
+  --selection-subtle:#0f6cbd0f;
+  --buy:#16856b;
+  --buy-subtle:#16856b17;
+  --sell:#c3485b;
+  --sell-subtle:#c3485b17;
+  --price-bg:#fbfbfb;
+  --depth-bg:#ffffff;
+  --best-buy-bg:#eaf6f2;
+  --best-buy-fg:#0e5f4d;
+  --best-sell-bg:#fbecef;
+  --best-sell-fg:#9f3042;
+  --flyout-solid:#ffffff;
+  --flyout-acrylic:rgba(255,255,255,.76);
+  --dialog-surface:#ffffff;
+  --smoke:rgba(0,0,0,.28);
+  --shadow-active:0 2px 8px rgba(0,0,0,.10);
+  --shadow-flyout:0 8px 24px rgba(0,0,0,.16),0 2px 8px rgba(0,0,0,.08);
+  --chart-bg:#ffffff;
+  --chart-grid:#e2e2e2;
+  --chart-grid-subtle:#ededed;
+  --chart-axis:#616161;
+  --chart-axis-muted:#808080;
+  --chart-last-line:#16856b66;
+  --chart-last-bg:#dff2ec;
+  --chart-last-text:#0e5f4d;
+}
+
+body{background:var(--surface-app);color:var(--fg-primary)}
+.commandbar{
+  background:var(--surface-subtle);
+  border-bottom-color:var(--stroke-subtle)
+}
+.brand{color:var(--fg-primary)}
+.version{color:var(--fg-muted);border-left-color:var(--stroke-default)}
+.workspace-name{color:var(--fg-secondary)}
+.demo{color:var(--fg-muted)}
+.separator{background:var(--stroke-default)}
+.toolbar-note,.zoom-label{color:var(--fg-muted)}
+button{color:var(--fg-secondary)}
+button:hover{background:var(--surface-hover);color:var(--fg-primary)}
+button:active{background:var(--surface-pressed)}
+button:disabled{color:var(--fg-disabled)}
+select{
+  background:var(--surface-module);
+  border-color:var(--stroke-default);
+  color:var(--fg-secondary)
+}
+option{background:var(--surface-module);color:var(--fg-primary)}
+.accent{background:var(--brand-fill);color:#fff}
+.accent:hover{background:var(--brand-hover);color:#fff}
+.accent:active{background:var(--brand-pressed);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{
+  outline-color:var(--brand);
+}
+
+#viewport,#scene{background:var(--surface-canvas)}
+.module{
+  background:var(--surface-module);
+  border-color:var(--stroke-subtle);
+  box-shadow:none
+}
+.module:hover{border-color:var(--stroke-default)}
+.module.active{
+  border-color:var(--brand);
+  box-shadow:var(--shadow-active),inset 0 0 0 1px var(--brand-subtle)
+}
+.module.active .module-header{background:var(--surface-active-header)}
+.module.selected:not(.active){
+  border-color:var(--stroke-default);
+  box-shadow:inset 0 0 0 1px var(--selection-subtle)
+}
+.module.selected:not(.active) .module-header{position:relative}
+.module.selected:not(.active) .module-header::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:5px;
+  bottom:5px;
+  width:3px;
+  border-radius:0 2px 2px 0;
+  background:var(--brand)
+}
+.module.dragging{
+  border-color:var(--brand);
+  box-shadow:var(--shadow-flyout)
+}
+.module-header{
+  background:var(--surface-header);
+  border-bottom-color:var(--stroke-subtle)
+}
+.module-symbol{color:var(--fg-primary)}
+.group-tag{color:var(--fg-secondary);background:var(--surface-hover)}
+.market-tag{color:var(--fg-muted);border-color:var(--stroke-default)}
+.market-tag.spot{color:var(--fg-muted);border-color:var(--stroke-subtle)}
+.module-actions button{color:var(--fg-muted)}
+.module-actions button:hover{background:var(--surface-hover);color:var(--fg-primary)}
+.module-footer{
+  background:var(--surface-subtle);
+  border-top-color:var(--stroke-subtle);
+  color:var(--fg-muted)
+}
+
+.chart-tools{
+  background:var(--surface-subtle);
+  border-bottom-color:var(--stroke-subtle)
+}
+.chart-tools button{color:var(--fg-muted)}
+.chart-tools button.on{
+  color:var(--fg-primary);
+  background:var(--brand-subtle);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand) 30%,transparent)
+}
+.chart-tools .exchange,.chart-tools select{color:var(--fg-muted)}
+
+.dom-meta{
+  background:var(--surface-subtle);
+  border-bottom-color:var(--stroke-subtle);
+  color:var(--fg-muted)
+}
+.dom-meta strong,.dom-meta .readonly{color:var(--fg-muted)}
+.dom-row:nth-child(5n){border-bottom-color:var(--stroke-subtle)}
+.price{
+  background:var(--price-bg);
+  color:var(--fg-secondary);
+  border-left-color:var(--stroke-subtle)
+}
+.price.major{color:var(--fg-primary)}
+.depth{background:var(--depth-bg);color:var(--fg-secondary)}
+.depth-bar{background:var(--sell-subtle)}
+.bid .depth-bar{background:var(--buy-subtle)}
+.best-ask .price{
+  background:var(--best-sell-bg);
+  color:var(--best-sell-fg);
+  box-shadow:inset 3px 0 0 var(--sell)
+}
+.best-bid .price{
+  background:var(--best-buy-bg);
+  color:var(--best-buy-fg);
+  box-shadow:inset 3px 0 0 var(--buy)
+}
+.best-ask .depth{background:var(--sell-subtle);color:var(--best-sell-fg)}
+.best-bid .depth{background:var(--buy-subtle);color:var(--best-buy-fg)}
+.tape-lane{border-right-color:var(--stroke-subtle)}
+.dom-row:hover .price{
+  box-shadow:inset 3px 0 var(--brand);
+  background:var(--surface-hover);
+  color:var(--fg-primary)
+}
+.dom-row:hover .depth{background:var(--surface-hover)}
+.dom-grid .axis-captions{color:var(--fg-muted)}
+
+.statusbar{
+  background:var(--surface-subtle);
+  border-top-color:var(--stroke-subtle);
+  color:var(--fg-muted)
+}
+.status-divider{color:var(--stroke-strong)}
+
+.popup{
+  background:var(--flyout-solid);
+  border-color:var(--stroke-default);
+  color:var(--fg-primary);
+  box-shadow:var(--shadow-flyout)
+}
+.popup button{color:var(--fg-secondary)}
+.popup button:hover{background:var(--surface-hover);color:var(--fg-primary)}
+.menu-label{color:var(--fg-muted)}
+hr{border-top-color:var(--stroke-subtle)}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .popup{
+    background:var(--flyout-acrylic);
+    backdrop-filter:blur(20px) saturate(135%);
+    -webkit-backdrop-filter:blur(20px) saturate(135%)
+  }
+}
+
+#tooltip{
+  background:var(--surface-header);
+  border-color:var(--stroke-default);
+  color:var(--fg-primary)
+}
+#toast{
+  background:var(--surface-header);
+  border-color:var(--stroke-default);
+  color:var(--fg-primary)
+}
+dialog{
+  background:var(--dialog-surface);
+  border-color:var(--stroke-default);
+  color:var(--fg-primary)
+}
+dialog::backdrop{background:var(--smoke)}
+.fields label,.settings-fields label{color:var(--fg-secondary)}
+.secondary{color:var(--fg-muted)}
+
+#dock-preview{
+  border-color:var(--brand);
+  background:var(--brand-subtle);
+  color:var(--fg-primary)
+}
+.splitter:hover{background:var(--brand)}
