@@ -26,3 +26,291 @@ dialog{background:#26292f;color:var(--text);width:410px;max-width:calc(100vw - 3
 .splitter{position:absolute;z-index:40;background:transparent;touch-action:none}.split-x{cursor:col-resize}.split-y{cursor:row-resize}.splitter:hover{background:#91b9dc99}.locked .splitter{pointer-events:none}.module-header{touch-action:none}#dock-preview{position:absolute;z-index:850;pointer-events:none;border:2px solid #9ec6e7;background:#749ac02c;display:flex;align-items:center;justify-content:center;font-size:16px;color:#e4f1fc;text-shadow:0 1px 3px #000;border-radius:5px;box-shadow:inset 0 0 50px #172e4766}
 @media(max-width:900px){.toolbar-note,.workspace-name{display:none}.commandbar{gap:2px}.commandbar button{padding:4px 6px;font-size:11px}.toolbar-right{gap:4px}.zoom-label{font-size:0}.statusbar{gap:10px}.status-right{display:none}.demo{font-size:10px}.version{display:none}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .focusing .module:not(.maximized),.focusing .splitter{visibility:hidden}
+
+
+/* Fluent 2 compact trading workstation pass */
+:root{
+  --bg:#141414;
+  --panel:#1f1f1f;
+  --raised:#242424;
+  --hover:#2b2b2b;
+  --pressed:#333333;
+  --line:#3d3d3d;
+  --line-subtle:#2e2e2e;
+  --text:#f5f5f5;
+  --text-secondary:#d6d6d6;
+  --muted:#adadad;
+  --muted-2:#8a8a8a;
+  --accent:#479ef5;
+  --accent-fill:#0f6cbd;
+  --accent-fill-hover:#115ea3;
+  --accent-fill-pressed:#0c3b5e;
+  --accent-subtle:#479ef51f;
+  --accent-stroke:#479ef5;
+  --buy:#54b399;
+  --buy-subtle:#54b39922;
+  --sell:#d86c7f;
+  --sell-subtle:#d86c7f22;
+  --danger:#dc626d;
+  --shadow-flyout:0 8px 24px rgba(0,0,0,.42),0 2px 8px rgba(0,0,0,.28);
+  --radius-small:4px;
+  --radius-medium:8px;
+  --radius-large:12px;
+}
+body{background:var(--bg);color:var(--text)}
+button,select{border-radius:var(--radius-small)}
+button{transition:background .1s ease,border-color .1s ease,color .1s ease,box-shadow .1s ease}
+button:hover{background:var(--hover)}
+button:active{background:var(--pressed)}
+button:focus-visible,select:focus-visible,input:focus-visible{
+  outline:2px solid var(--accent-stroke);
+  outline-offset:2px
+}
+select{
+  background:var(--raised);
+  border-color:var(--line);
+  color:var(--text-secondary)
+}
+option{background:var(--raised)}
+.accent{
+  background:var(--accent-fill);
+  border-color:transparent;
+  color:#fff;
+  font-weight:600
+}
+.accent:hover{background:var(--accent-fill-hover)}
+.accent:active{background:var(--accent-fill-pressed)}
+
+.appbar{
+  height:40px;
+  padding:0 12px;
+  gap:20px;
+  background:#181818;
+  border-bottom:1px solid var(--line-subtle)
+}
+.brand{font-size:13px;font-weight:600}
+.brand-mark{color:var(--accent);font-size:18px}
+.version{
+  color:var(--muted-2);
+  border-left-color:var(--line);
+  padding-left:10px;
+  margin-left:4px
+}
+.workspace-name{color:var(--text-secondary)}
+.demo{color:var(--muted)}
+.demo i{background:#c8a44d}
+
+.commandbar{
+  height:40px;
+  padding:0 8px;
+  gap:4px;
+  background:#1b1b1b;
+  border-bottom:1px solid var(--line-subtle)
+}
+.commandbar>button,.menu-anchor>button{min-height:28px;padding:3px 8px}
+.separator{background:var(--line);margin:0 4px}
+.toolbar-note{color:var(--muted-2)}
+.zoom-label{color:var(--muted)}
+
+.popup{
+  top:32px;
+  width:272px;
+  padding:4px;
+  background:#252525;
+  border:1px solid var(--line);
+  border-radius:var(--radius-medium);
+  box-shadow:var(--shadow-flyout)
+}
+.popup button{
+  height:32px;
+  border-radius:var(--radius-small);
+  color:var(--text-secondary)
+}
+.popup button:hover{background:#303030;color:var(--text)}
+.menu-label{color:var(--muted-2);padding:8px 8px 6px}
+hr{border-top-color:var(--line-subtle);margin:4px}
+
+#viewport{height:calc(100vh - 106px);padding:4px;background:var(--bg)}
+#scene{background:var(--bg)}
+
+.module{
+  background:var(--panel);
+  border:1px solid var(--line-subtle);
+  border-radius:2px
+}
+.module:hover{border-color:#454545}
+.module.active{
+  border-color:var(--accent-stroke);
+  box-shadow:inset 0 0 0 1px var(--accent-subtle)
+}
+.module.selected{
+  outline:none;
+  box-shadow:inset 0 0 0 1px var(--accent-stroke),inset 0 0 0 3px var(--accent-subtle)
+}
+.module.dragging{
+  border-color:var(--accent-stroke);
+  box-shadow:var(--shadow-flyout)
+}
+
+.module-header{
+  height:30px;
+  min-height:30px;
+  padding:0 6px;
+  gap:6px;
+  background:var(--raised);
+  border-bottom:1px solid var(--line-subtle)
+}
+.module-symbol{color:var(--text);font-size:12px}
+.group-tag{
+  color:var(--text-secondary);
+  background:#313131;
+  border-radius:2px
+}
+.market-tag{
+  color:var(--muted);
+  border-color:var(--line);
+  border-radius:2px;
+  background:transparent
+}
+.market-tag.spot{color:var(--muted-2);border-color:var(--line-subtle)}
+.module-actions button{
+  color:var(--muted);
+  border-radius:var(--radius-small)
+}
+.module-actions button:hover{color:var(--text);background:#333}
+
+.module-footer{
+  height:24px;
+  min-height:24px;
+  background:#1b1b1b;
+  border-top:1px solid var(--line-subtle);
+  color:var(--muted-2)
+}
+.chart-tools{
+  height:28px;
+  padding:0 6px;
+  border-bottom:1px solid var(--line-subtle);
+  background:#1d1d1d
+}
+.chart-tools button{color:var(--muted);border-radius:var(--radius-small)}
+.chart-tools button.on{
+  color:var(--text);
+  background:var(--accent-subtle);
+  box-shadow:inset 0 0 0 1px #479ef540
+}
+.chart-tools .exchange{color:var(--muted-2)}
+.chart-tools select{color:var(--muted);background:transparent}
+
+.dom-meta{
+  height:24px;
+  padding:0 6px;
+  color:var(--muted-2);
+  border-bottom:1px solid var(--line-subtle);
+  background:#1c1c1c
+}
+.dom-meta strong{color:var(--muted)}
+.dom-meta .readonly{color:var(--muted-2)}
+.dom-grid{top:24px}
+
+.dom-row:nth-child(5n){border-bottom-color:#2d2d2d}
+.price{
+  background:#202020;
+  color:#c7c7c7;
+  border-left-color:var(--line-subtle)
+}
+.price.major{color:var(--text)}
+.depth{
+  color:#c9c9c9;
+  background:#1d1d1d
+}
+.depth-bar{background:var(--sell-subtle)}
+.bid .depth-bar{background:var(--buy-subtle)}
+.depth.heavy .depth-bar{background:#d29b522e}
+.depth.heavy .depth-amount{color:#e0c48f}
+.best-ask .price{
+  background:#3a2429;
+  color:#ffd9df;
+  box-shadow:inset 3px 0 0 var(--sell)
+}
+.best-bid .price{
+  background:#20342f;
+  color:#d5f5eb;
+  box-shadow:inset 3px 0 0 var(--buy)
+}
+.best-ask .depth{background:#2c202322;color:#e7b7c0}
+.best-bid .depth{background:#1d2b2822;color:#b8ded3}
+.best-ask:before{background:var(--sell-subtle)}
+.best-bid:before{background:var(--buy-subtle)}
+.tape-lane{border-right-color:var(--line-subtle)}
+.trade-square{
+  background:#2f6f5dcc;
+  color:#d8f3eb;
+  border-color:#62b39b7a;
+  border-radius:2px
+}
+.trade-square.sell{
+  background:#7d4350cc;
+  border-color:#d078897a;
+  color:#ffe2e8
+}
+.trade-square:hover{
+  outline:1px solid var(--text-secondary);
+  box-shadow:0 0 0 1px #0008
+}
+.dom-row:hover .price{
+  box-shadow:inset 3px 0 var(--accent);
+  background:#2c2c2c;
+  color:var(--text)
+}
+.dom-row:hover .depth{background:#272727}
+
+.statusbar{
+  height:26px;
+  padding:0 10px;
+  gap:18px;
+  background:#181818;
+  border-top:1px solid var(--line-subtle);
+  color:var(--muted-2)
+}
+.offline-dot{background:#8a8a8a}
+.status-divider{color:#555}
+
+#tooltip{
+  border:1px solid var(--line);
+  background:#2b2b2b;
+  box-shadow:var(--shadow-flyout);
+  border-radius:var(--radius-small);
+  color:var(--text)
+}
+#toast{
+  background:#292929;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-flyout);
+  border-radius:var(--radius-medium)
+}
+
+dialog{
+  background:#242424;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:var(--radius-large);
+  padding:20px;
+  box-shadow:0 24px 64px rgba(0,0,0,.55)
+}
+dialog::backdrop{background:rgba(0,0,0,.56)}
+.dialog-header{margin-bottom:16px}
+.dialog-header h2{font-size:16px;font-weight:600}
+.fields,.settings-fields{gap:12px}
+.fields label,.settings-fields label{gap:6px;color:var(--text-secondary)}
+.secondary{color:var(--muted);line-height:1.5;margin:16px 0}
+.dialog-actions{margin-top:16px}
+.check-label input{accent-color:var(--accent-fill)}
+
+.splitter:hover{background:var(--accent)}
+#dock-preview{
+  border-color:var(--accent-stroke);
+  background:#479ef522;
+  color:#eaf4ff;
+  border-radius:var(--radius-small);
+  box-shadow:inset 0 0 0 1px #ffffff0a
+}
