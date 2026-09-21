@@ -7,12 +7,10 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="appbar">
+  <nav class="commandbar" aria-label="Робочий простір">
     <div class="brand"><span class="brand-mark" aria-hidden="true">s</span>ScalpTerm <span class="version">Дизайн 01</span></div>
     <span class="workspace-name">Основний простір</span>
-    <span class="demo"><i></i>Демонстраційні дані</span>
-  </header>
-  <nav class="commandbar" aria-label="Робочий простір">
+    <span class="separator"></span>
     <button id="add-open" class="accent">＋ Модуль</button>
     <span class="separator"></span>
     <div class="menu-anchor"><button id="align-open" aria-expanded="false">Вирівняти <span class="chevron">⌄</span></button>
@@ -27,6 +25,7 @@
     <button id="lock" aria-pressed="false">Фіксувати розкладку</button>
     <span class="toolbar-note" id="selection-note">Ctrl + клік — вибрати кілька модулів</span>
     <div class="toolbar-right">
+      <span class="demo"><i></i>Демонстраційні дані</span>
       <label class="zoom-label">Масштаб <select id="zoom" aria-label="Масштаб макета"><option value="fit">Вписати</option><option value="1">100%</option><option value="0.75">75%</option><option value="0.5">50%</option></select></label>
       <button id="settings-open" aria-label="Вигляд">Вигляд</button>
     </div>
