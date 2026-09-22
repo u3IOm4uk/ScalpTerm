@@ -706,3 +706,29 @@ dialog::backdrop{background:var(--smoke)}
   font-variant-numeric:tabular-nums
 }
 .dom-meta .readonly{margin-left:8px}
+
+
+/* DOM layout correction: cluster | tape total | depth | price */
+.dom-row{
+  grid-template-columns:86px minmax(48px,1fr) 74px 68px
+}
+.cluster{
+  border-left:0;
+  border-right:1px solid var(--stroke-subtle)
+}
+.tape-volume{
+  min-width:0;
+  height:var(--row);
+  line-height:var(--row);
+  padding:0 6px;
+  text-align:right;
+  overflow:hidden;
+  white-space:nowrap;
+  color:var(--fg-secondary);
+  background:var(--surface-module);
+  border-right:1px solid var(--stroke-subtle);
+  font-size:var(--digits);
+  font-variant-numeric:tabular-nums
+}
+.dom-row:hover .tape-volume{background:var(--surface-hover)}
+.trade-square,.dom-grid .axis-captions{display:none!important}

@@ -119,7 +119,7 @@
         footer.innerHTML='<span>Умовна історія</span><span class="right">Статичний макет</span>';
         drawChart(m,el);
       } else {
-        body.innerHTML=`<div class="dom-meta"><span>BINANCE <strong>· USDT</strong></span><span class="cluster-key">Bid × Ask</span><span class="readonly">${m.market==='S'?'Спостереження':'Демо'}</span></div><div class="dom-grid" aria-label="Стрічка, кластер Bid × Ask, обсяг рівня, ціна"></div>`;
+        body.innerHTML=`<div class="dom-meta"><span>BINANCE <strong>· USDT</strong></span><span class="cluster-key">Bid × Ask</span><span class="readonly">${m.market==='S'?'Спостереження':'Демо'}</span></div><div class="dom-grid" aria-label="Кластер Bid × Ask, лента пройденого обсягу, обсяг заявок, ціна"></div>`;
         footer.innerHTML=`<button class="dom-footer-button" data-action="center" title="Повернути до найкращих цін">◎ До ринку</button><span class="right">Крок ${fmt(instruments[m.symbol].step,instruments[m.symbol].digits)}</span>`;
         const grid=body.querySelector('.dom-grid');grid.addEventListener('wheel',e=>{if(e.ctrlKey)return;e.preventDefault();m.offset+=Math.sign(e.deltaY)*3;drawDom(m,el);save();},{passive:false});
         drawDom(m,el);
@@ -156,33 +156,21 @@
   function drawDom(m,el) {
     const grid=el.querySelector('.dom-grid');if(!grid)return;
     const info=instruments[m.symbol],rows=Math.ceil(grid.clientHeight/rowHeight),middle=Math.floor(rows*.45),rng=random(seedOf(m.symbol+m.market)),base=Math.round((info.price*(m.market==='F'?1:.9994))/info.step)*info.step;
-    const depth=[];let html='';
+    let html='';
     for(let i=0;i<rows;i++) {
-      const level=middle-i+m.offset,price=base+level*info.step,ask=level>=1,best=level===1?'best-ask':level===0?'best-bid':'',vol=500+rng()*35000*(rng()<.13?5:1);depth.push(vol);
+      const level=middle-i+m.offset,price=base+level*info.step,ask=level>=1,best=level===1?'best-ask':level===0?'best-bid':'',vol=500+rng()*35000*(rng()<.13?5:1);
       const width=Math.min(100,vol/115000*100),heavy=vol>95000;
       const clusterRng=random(seedOf(m.symbol+m.market+'cluster'+level));
       const bidCluster=80+clusterRng()*9000*(clusterRng()<.12?4:1);
       const askCluster=80+clusterRng()*9000*(clusterRng()<.12?4:1);
+      const tradedVolume=bidCluster+askCluster;
       const bidImbalance=bidCluster>askCluster*3&&bidCluster>1500;
       const askImbalance=askCluster>bidCluster*3&&askCluster>1500;
       const clusterClass=bidImbalance?' imbalance-bid':askImbalance?' imbalance-ask':'';
       const delta=askCluster-bidCluster,deltaText=(delta>=0?'+':'')+fmt(delta,0);
-      html+=`<div class="dom-row ${ask?'ask':'bid'} ${best}"><div class="tape-lane"></div><div class="cluster${clusterClass}" data-tip="Кластер Bid × Ask · ${fmt(price,info.digits)}\nBid: ${fmt(bidCluster,0)} USDT\nAsk: ${fmt(askCluster,0)} USDT\nDelta: ${deltaText} USDT"><span class="cluster-bid">${short(bidCluster)}</span><span class="cluster-x">×</span><span class="cluster-ask">${short(askCluster)}</span></div><div class="depth ${heavy?'heavy':''}" data-tip="${ask?'Ask':'Bid'} · ${fmt(price,info.digits)}\nОбсяг рівня: ${fmt(vol,0)} USDT\nДемонстраційні дані"><span class="depth-bar" style="width:${width}%"></span><span class="depth-amount">${short(vol)}</span></div><div class="price ${Math.round(price/info.step)%5===0?'major':''}" ${best?`data-tip="${best==='best-ask'?'Best ask':'Best bid'} · ${fmt(price,info.digits)}"`:''}>${fmt(price,info.digits)}</div></div>`;
+      html+=`<div class="dom-row ${ask?'ask':'bid'} ${best}"><div class="cluster${clusterClass}" data-tip="Кластер Bid × Ask · ${fmt(price,info.digits)}\nBid: ${fmt(bidCluster,0)} USDT\nAsk: ${fmt(askCluster,0)} USDT\nDelta: ${deltaText} USDT"><span class="cluster-bid">${short(bidCluster)}</span><span class="cluster-x">×</span><span class="cluster-ask">${short(askCluster)}</span></div><div class="tape-volume" data-tip="Пройдений обсяг · ${fmt(price,info.digits)}\nУсього: ${fmt(tradedVolume,0)} USDT">${short(tradedVolume)}</div><div class="depth ${heavy?'heavy':''}" data-tip="${ask?'Ask':'Bid'} · ${fmt(price,info.digits)}\nОбсяг заявок: ${fmt(vol,0)} USDT\nДемонстраційні дані"><span class="depth-bar" style="width:${width}%"></span><span class="depth-amount">${short(vol)}</span></div><div class="price ${Math.round(price/info.step)%5===0?'major':''}" ${best?`data-tip="${best==='best-ask'?'Best ask':'Best bid'} · ${fmt(price,info.digits)}"`:''}>${fmt(price,info.digits)}</div></div>`;
     }
     grid.innerHTML=html;
-    const firstLane=grid.querySelector('.tape-lane');
-    const laneWidth=Math.max(40,firstLane?.clientWidth||grid.clientWidth-220),fixedWidth=Math.max(0,grid.clientWidth-laneWidth),tradeRng=random(seedOf(m.symbol+'tape'+m.market));
-    const count=Math.floor(laneWidth/7);let tradeLevel=0;
-    for(let age=0;age<count;age++) {
-      if(age>0)tradeLevel+=tradeRng()>.55?1:-1;
-      const row=middle-tradeLevel+m.offset, size=age===3?27:5+Math.floor(tradeRng()*15),right=6+age*7;
-      if(row<0||row>=rows || right+size>laneWidth-3)continue;
-      const buy=tradeRng()>.46,vol=Math.round(size*size*37),square=document.createElement('span');square.className='trade-square'+(buy?'':' sell')+(age>count*.7?' old':'');
-      Object.assign(square.style,{width:size+'px',height:size+'px',right:(fixedWidth+right)+'px',top:(row*rowHeight+rowHeight/2)+'px'});
-      square.dataset.tip=`Окрема умовна угода · ${buy?'покупець':'продавець'}\nЦіна: ${fmt(base+tradeLevel*info.step,info.digits)}\nОбсяг: ${vol.toLocaleString('en-US')} USDT\nНові угоди — праворуч`;
-      if(size>=23)square.textContent=short(vol);grid.append(square);
-    }
-    const caption=document.createElement('span');caption.className='axis-captions';caption.textContent='← історія угод';grid.append(caption);
   }
   function redraw(m,el){if(m.type==='dom')drawDom(m,el);else drawChart(m,el);}
   const redrawModule=redraw;
