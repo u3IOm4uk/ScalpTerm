@@ -656,3 +656,53 @@ dialog::backdrop{background:var(--smoke)}
   color:var(--fg-primary)
 }
 .splitter:hover{background:var(--brand)}
+
+
+/* DOM footprint Bid × Ask */
+.dom-row{
+  grid-template-columns:minmax(48px,1fr) 78px 74px 68px
+}
+.cluster{
+  min-width:0;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:2px;
+  height:var(--row);
+  padding:0 3px;
+  border-left:1px solid var(--stroke-subtle);
+  background:var(--surface-module);
+  color:var(--fg-muted);
+  font-size:10px;
+  line-height:var(--row);
+  font-variant-numeric:tabular-nums;
+  overflow:hidden
+}
+.cluster-bid,.cluster-ask{
+  min-width:0;
+  padding:0 2px;
+  border-radius:2px;
+  overflow:hidden;
+  text-overflow:clip;
+  white-space:nowrap
+}
+.cluster-bid{text-align:right}
+.cluster-ask{text-align:left}
+.cluster-x{color:var(--fg-disabled);font-size:9px}
+.cluster.imbalance-bid .cluster-bid{
+  background:var(--sell-subtle);
+  color:var(--sell);
+  font-weight:600
+}
+.cluster.imbalance-ask .cluster-ask{
+  background:var(--buy-subtle);
+  color:var(--buy);
+  font-weight:600
+}
+.dom-row:hover .cluster{background:var(--surface-hover)}
+.cluster-key{
+  margin-left:auto;
+  color:var(--fg-muted);
+  font-variant-numeric:tabular-nums
+}
+.dom-meta .readonly{margin-left:8px}
