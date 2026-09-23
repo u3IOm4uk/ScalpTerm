@@ -732,3 +732,20 @@ dialog::backdrop{background:var(--smoke)}
 }
 .dom-row:hover .tape-volume{background:var(--surface-hover)}
 .trade-square,.dom-grid .axis-captions{display:none!important}
+
+
+/* Restore trade tape between footprint and depth */
+.dom-row{
+  grid-template-columns:86px minmax(48px,1fr) 74px 68px
+}
+.tape-lane{
+  position:relative;
+  min-width:0;
+  background:var(--surface-module);
+  border-right:1px solid var(--stroke-subtle)
+}
+.dom-row:hover .tape-lane{background:var(--surface-hover)}
+.tape-volume{display:none!important}
+.trade-square{
+  display:flex!important
+}
