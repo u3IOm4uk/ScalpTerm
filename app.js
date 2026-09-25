@@ -10,6 +10,7 @@
     XRPUSDT: {price:.5868,step:.0001,digits:4,range:.009}
   };
   const clusterFrames = {'1m':1,'5m':5,'15m':15};
+  const orderSizes = [100,200,300,400,500];
   const chartWidthDefault = 7, chartWidthMin = 3, chartWidthMax = 24;
   const chartPriceScaleMin = .5, chartPriceScaleMax = 4;
   let modules = [], serial = 0, scale = 1, selected = new Set(), active = null;
@@ -128,12 +129,12 @@
       if(!s.modules.every(m=>{
         if(!m || !Number.isInteger(m.id) || ids.has(m.id)) return false;
         ids.add(m.id);
-        return ['chart','dom'].includes(m.type) && (m.symbol===null||Object.hasOwn(instruments,m.symbol)) && (m.market===null||['F','S'].includes(m.market)) && ['x','y','w','h'].every(k=>Number.isFinite(m[k])) && m.x>=0 && m.y>=0 && m.w>0 && m.h>0 && Number.isFinite(m.offset) && /^(?:[A-Z]|G\d+|—)$/.test(m.group) && (m.linkedGroup===undefined||typeof m.linkedGroup==='boolean') && (m.type!=='chart'||(['1m','5m','15m'].includes(m.timeframe) && (m.chartCandleWidth===undefined||Number.isFinite(m.chartCandleWidth)&&m.chartCandleWidth>=chartWidthMin&&m.chartCandleWidth<=chartWidthMax) && (m.chartPriceScale===undefined||Number.isFinite(m.chartPriceScale)&&m.chartPriceScale>=chartPriceScaleMin&&m.chartPriceScale<=chartPriceScaleMax))) && (m.type!=='dom'||m.clusterTimeframe===undefined||Object.hasOwn(clusterFrames,m.clusterTimeframe));
+        return ['chart','dom'].includes(m.type) && (m.symbol===null||Object.hasOwn(instruments,m.symbol)) && (m.market===null||['F','S'].includes(m.market)) && ['x','y','w','h'].every(k=>Number.isFinite(m[k])) && m.x>=0 && m.y>=0 && m.w>0 && m.h>0 && Number.isFinite(m.offset) && /^(?:[A-Z]|G\d+|—)$/.test(m.group) && (m.linkedGroup===undefined||typeof m.linkedGroup==='boolean') && (m.type!=='chart'||(['1m','5m','15m'].includes(m.timeframe) && (m.chartCandleWidth===undefined||Number.isFinite(m.chartCandleWidth)&&m.chartCandleWidth>=chartWidthMin&&m.chartCandleWidth<=chartWidthMax) && (m.chartPriceScale===undefined||Number.isFinite(m.chartPriceScale)&&m.chartPriceScale>=chartPriceScaleMin&&m.chartPriceScale<=chartPriceScaleMax))) && (m.type!=='dom'||((m.clusterTimeframe===undefined||Object.hasOwn(clusterFrames,m.clusterTimeframe)) && (m.orderSize===undefined||orderSizes.includes(m.orderSize))));
       })) return false;
       let validTree=true;const treeIds=[],splitIds=new Set();
       function validate(n,depth=0){if(!n||depth>200){validTree=false;return;}if(n.children){if(!['x','y'].includes(n.axis)||!Array.isArray(n.children)||n.children.length<2||!Array.isArray(n.weights)||n.weights.length!==n.children.length||!n.weights.every(v=>Number.isFinite(v)&&v>0)||!Number.isInteger(n.splitId)||splitIds.has(n.splitId)){validTree=false;return;}splitIds.add(n.splitId);n.children.forEach(c=>validate(c,depth+1));}else treeIds.push(n.id);}
       validate(s.tree);if(!validTree||treeIds.length!==ids.size||new Set(treeIds).size!==ids.size||!treeIds.every(id=>ids.has(id)))return false;
-      modules=s.modules;modules.forEach(m=>{m.market??='F';if(m.type==='dom')m.clusterTimeframe??='1m';else{m.chartCandleWidth??=chartWidthDefault;m.chartPriceScale??=1;}});tree=s.tree;
+      modules=s.modules;modules.forEach(m=>{m.market??='F';if(m.type==='dom'){m.clusterTimeframe??='1m';m.orderSize??=100;}else{m.chartCandleWidth??=chartWidthDefault;m.chartPriceScale??=1;}});tree=s.tree;
       walk(tree,n=>{if(n.axis==='y'&&n.weights?.length===2&&n.weights[0]===350&&n.weights[1]===960)n.weights=[430,880];});
       splitSerial=Math.max(0,...splitIds);serial=Math.max(...modules.map(m=>m.id)); locked=!!s.locked;
       rowHeight=[18,20,24].includes(s.rowHeight)?s.rowHeight:20; digitSize=[12,13,14].includes(s.digitSize)?s.digitSize:13;
@@ -202,6 +203,15 @@
         drawChart(m,el);
       } else {
         body.innerHTML='<div class="dom-grid" aria-label="Кластер загального обсягу, стрічка угод, обсяг заявок, ціна"></div><div class="module-empty dom-empty" hidden></div>';
+        if(m.market==='F'){
+          const picker=document.createElement('div');
+          picker.className='order-size-picker';
+          picker.setAttribute('role','group');
+          picker.setAttribute('aria-label','Обсяг угоди, USDT');
+          picker.innerHTML=`<span class="order-size-label">USDT</span>${orderSizes.map(size=>`<button type="button" data-order-size="${size}" aria-pressed="${(m.orderSize??100)===size}">${size}</button>`).join('')}`;
+          picker.addEventListener('click',event=>{const button=event.target.closest('[data-order-size]');if(!button)return;m.orderSize=Number(button.dataset.orderSize);picker.querySelectorAll('[data-order-size]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));save();});
+          body.append(picker);
+        }
         footer.innerHTML=`<button class="dom-footer-button" data-action="center" title="Повернути до найкращих цін">◎ До ринку</button><label class="cluster-frame">Кластер <select aria-label="Таймфрейм кластера"><option value="1m">1 хв</option><option value="5m">5 хв</option><option value="15m">15 хв</option></select></label><span class="right">Крок ${m.symbol?fmt(instruments[m.symbol].step,instruments[m.symbol].digits):'—'}</span>`;
         const frameSelect=footer.querySelector('.cluster-frame select');frameSelect.value=m.clusterTimeframe||'1m';
         frameSelect.setAttribute('aria-label',`Таймфрейм кластера ${m.symbol||'без інструмента'}, ${m.market==='F'?'ф’ючерс':m.market==='S'?'спот':'без ринку'}`);
@@ -315,8 +325,10 @@
   function drawDom(m,el) {
     const grid=el.querySelector('.dom-grid');if(!grid)return;
     const empty=el.querySelector('.module-empty');
-    if(!m.symbol||!m.market){grid.hidden=true;empty.hidden=false;empty.textContent=!m.symbol?'Оберіть інструмент у заголовку':'Оберіть ринок стакана';return;}
+    const picker=el.querySelector('.order-size-picker');
+    if(!m.symbol||!m.market){grid.hidden=true;if(picker)picker.hidden=true;empty.hidden=false;empty.textContent=!m.symbol?'Оберіть інструмент у заголовку':'Оберіть ринок стакана';return;}
     grid.hidden=false;empty.hidden=true;
+    if(picker)picker.hidden=false;
     const stream=getMarketStream(m.symbol,m.market),info=stream.info,rows=Math.ceil(grid.clientHeight/rowHeight),middle=Math.floor(rows*.45),baseTick=stream.priceTick;
     grid.dataset.lastPrice=fmt(baseTick*info.step,info.digits);grid.dataset.streamTime=String(stream.clock);
     const {levels:clusterLevels,maxVolume:clusterMax}=clusterFromTrades(m);
@@ -339,12 +351,13 @@
 
     const firstRow=grid.querySelector('.dom-row');
     const tapeWidth=firstRow?.querySelector('.tape-lane')?.clientWidth||0;
+    if(picker){const pickerWidth=Math.max(0,Math.min(32,tapeWidth-2));picker.style.left=((firstRow?.querySelector('.cluster')?.clientWidth||0)+(tapeWidth-pickerWidth)/2)+'px';picker.style.width=pickerWidth+'px';}
     const rightFixed=(firstRow?.querySelector('.depth')?.clientWidth||0)+(firstRow?.querySelector('.price')?.clientWidth||0);
     const count=Math.max(1,Math.floor(tapeWidth/7));
     for(let age=0;age<count;age++) {
       const trade=stream.trades.at(-1-age);if(!trade)break;
       const row=middle-(trade.tick-baseTick)+m.offset,size=Math.min(tapeWidth-7,Math.max(3,Math.round(Math.sqrt(trade.volume/25)*tapeScale))),right=5+age*7;
-      if(size<3||row<0||row>=rows||right+size>tapeWidth-2)continue;
+      if(size<3||row<0||row>=rows||right+size>tapeWidth-2||picker&&row*rowHeight+rowHeight/2+size/2>picker.offsetTop)continue;
       const square=document.createElement('span');
       square.className='trade-square'+(trade.isBuy?'':' sell')+(age>count*.7?' old':'');
       Object.assign(square.style,{width:size+'px',height:size+'px',right:(rightFixed+right)+'px',top:(row*rowHeight+rowHeight/2)+'px'});
