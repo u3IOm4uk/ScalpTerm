@@ -699,6 +699,52 @@ dialog::backdrop{background:var(--smoke)}
 .trade-square{
   display:flex!important
 }
+.order-size-picker{
+  position:absolute;
+  bottom:2px;
+  z-index:6;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  max-height:100%;
+  overflow:hidden;
+  padding:2px;
+  background:var(--surface-header);
+  border:1px solid var(--stroke-default);
+  border-radius:var(--radius-small);
+  box-shadow:var(--shadow-rest)
+}
+.order-size-label{
+  flex:none;
+  height:15px;
+  line-height:15px;
+  text-align:center;
+  color:var(--fg-muted);
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:.04em
+}
+.order-size-picker button{
+  flex:0 1 17px;
+  min-height:0;
+  width:100%;
+  height:17px;
+  padding:0 1px;
+  border:0;
+  border-radius:3px;
+  color:var(--fg-secondary);
+  font-size:10px;
+  font-variant-numeric:tabular-nums;
+  line-height:1
+}
+.order-size-picker button[aria-pressed="true"]{
+  color:var(--fg-primary);
+  background:var(--brand-subtle);
+  box-shadow:inset 2px 0 var(--brand);
+  font-weight:600
+}
+.order-size-picker button:hover{background:var(--surface-hover)}
+.order-size-picker button:focus-visible{outline-offset:-2px}
 .cluster-frame{
   display:flex;
   align-items:center;
