@@ -1,0 +1,36 @@
+html,body.settings-window{min-width:360px;min-height:100%;height:100%;overflow:hidden;background:var(--surface-app);color:var(--fg-primary)}
+.settings-shell{height:100%;display:flex;flex-direction:column;background:var(--surface-app)}
+.settings-heading{flex:none;padding:20px 26px 16px;background:var(--surface-header);border-bottom:1px solid var(--stroke-subtle)}
+.settings-app-name{font-size:11px;font-weight:700;color:var(--brand);letter-spacing:.03em}
+.settings-app-name span{font-weight:400;color:var(--fg-muted);margin-left:8px}
+.settings-heading h1{font-size:22px;line-height:1.25;margin:10px 0 5px;font-weight:600}
+.settings-heading p{color:var(--fg-muted);margin:0;font-size:12px;line-height:1.4}
+.settings-tabs{flex:none;display:flex;gap:3px;align-items:end;padding:5px 20px 0;background:var(--surface-header);border-bottom:1px solid var(--stroke-default);overflow-x:auto}
+.settings-tabs button{min-height:34px;height:34px;padding:6px 11px;border-radius:5px 5px 0 0;color:var(--fg-secondary);font-size:12px;white-space:nowrap;border-bottom:2px solid transparent}
+.settings-tabs button[aria-selected="true"]{color:var(--fg-primary);font-weight:600;border-bottom-color:var(--brand);background:var(--surface-hover)}
+.settings-content{flex:1;min-height:0;overflow:auto;padding:20px 26px 30px}
+.settings-card{background:var(--surface-module);border:1px solid var(--stroke-subtle);border-radius:var(--radius-medium);padding:16px 18px;margin:0 0 14px;box-shadow:var(--shadow-module)}
+.settings-card h2{font-size:14px;font-weight:600;margin:0 0 14px}
+.setting-field{display:grid;grid-template-columns:minmax(160px,1fr) minmax(150px,210px);align-items:center;column-gap:14px;row-gap:4px;margin:10px 0;font-size:12px}
+.setting-field>span{font-weight:600;color:var(--fg-secondary)}
+.setting-field select{min-width:0;width:100%;min-height:28px;background:var(--surface-header);border-color:var(--stroke-default);font-size:12px}
+.setting-field small{grid-column:1/-1;color:var(--fg-muted);font-size:11px;line-height:1.45}
+.setting-check{display:flex;align-items:flex-start;gap:10px;margin:16px 0 5px;font-size:12px;cursor:pointer}
+.setting-check input{margin:2px 0 0;accent-color:var(--brand)}
+.setting-check strong{display:block;font-weight:600}
+.setting-check small{display:block;margin-top:3px;color:var(--fg-muted);font-size:11px;line-height:1.45}
+.setting-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.settings-card>button,.setting-actions button,.file-button{display:inline-flex;align-items:center;justify-content:center;min-height:29px;padding:4px 10px;border:1px solid var(--stroke-default);border-radius:var(--radius-small);background:var(--surface-header);color:var(--fg-primary);font-size:11px;line-height:1.2;cursor:pointer}
+.settings-card>button:hover,.setting-actions button:hover,.file-button:hover{background:var(--surface-hover)}
+.file-button input{display:none}
+.setting-note{font-size:11px;line-height:1.5;color:var(--fg-muted);margin:10px 0}
+.settings-footer{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:7px 20px;border-top:1px solid var(--stroke-subtle);background:var(--surface-header);font-size:11px;color:var(--fg-muted)}
+.settings-footer .error{color:var(--sell)}
+.settings-footer button{min-height:28px;padding:3px 12px;border:1px solid var(--stroke-default);background:var(--surface-module)}
+.shortcut-list{margin:0}
+.shortcut-list>div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--stroke-subtle)}
+.shortcut-list>div:last-child{border:0}
+.shortcut-list dt{font-size:12px;color:var(--fg-secondary)}
+.shortcut-list dd{margin:0;font-size:11px;color:var(--fg-primary);text-align:right;white-space:nowrap}
+kbd{font:inherit;padding:2px 5px;border:1px solid var(--stroke-default);border-radius:3px;background:var(--surface-header)}
+@media(max-width:560px){.settings-heading{padding:15px 15px 12px}.settings-tabs{padding-inline:10px}.settings-content{padding:14px 12px}.setting-field{grid-template-columns:1fr}.setting-field small{grid-column:1}.settings-card{padding:13px}}

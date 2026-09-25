@@ -11,40 +11,28 @@
     <div class="brand"><span class="brand-mark" aria-hidden="true">s</span>ScalpTerm <span class="version">Дизайн 01</span></div>
     <span class="workspace-name">Основний простір</span>
     <span class="separator"></span>
-    <button id="add-open" class="accent">＋ Модуль</button>
-    <span class="separator"></span>
-    <div class="menu-anchor"><button id="align-open" aria-expanded="false">Вирівняти <span class="chevron">⌄</span></button>
-      <div id="align-menu" class="popup" hidden>
-        <div class="menu-label">Вибрані модулі · Ctrl + клік</div>
-        <button data-align="horizontal">Вибраний блок: порівну поруч</button><button data-align="vertical">Вибраний блок: порівну вертикально</button>
-        <hr><button data-align="groups">Однакова ширина чотирьох груп</button><button data-align="charts">Спільна висота графіків</button>
-        <hr><button id="layout-four">Шаблон: 4 графіки + 8 DOM</button>
+    <div class="menu-anchor"><button id="main-open" aria-haspopup="menu" aria-expanded="false">Основне</button>
+      <div id="main-menu" class="popup" role="menu" hidden>
+        <div class="menu-label">Основний простір</div>
+        <button role="menuitem" id="save-now">Зберегти розкладку</button>
+        <button role="menuitem" id="undo" disabled>Скасувати останню дію</button>
       </div>
     </div>
-    <button id="undo" title="Скасувати останню зміну компонування" disabled>↶ Скасувати</button>
-    <button id="lock" aria-pressed="false">Фіксувати розкладку</button>
-    <span class="toolbar-note" id="selection-note">Ctrl + клік — вибрати кілька модулів</span>
-    <div class="toolbar-right">
-      <span class="demo"><i></i>Демонстраційні дані</span>
-      <label class="zoom-label">Масштаб <select id="zoom" aria-label="Масштаб макета"><option value="fit">Вписати</option><option value="1">100%</option><option value="0.75">75%</option><option value="0.5">50%</option></select></label>
-      <button id="settings-open" aria-label="Вигляд">Вигляд</button>
+    <div class="menu-anchor add-anchor"><button id="add-open" class="accent" aria-haspopup="menu" aria-expanded="false">＋ Модуль</button>
+      <div id="add-menu" class="popup add-menu" role="menu" hidden><button role="menuitem" data-add="chart">Графік</button><button role="menuitem" data-add="dom">Стакан</button><button role="menuitem" data-add="group">Група</button></div>
     </div>
+    <div class="menu-anchor"><button id="settings-open" aria-haspopup="menu" aria-expanded="false">Налаштування</button>
+      <div id="settings-menu" class="popup settings-menu" role="menu" hidden>
+        <button role="menuitem" data-settings="view">Вигляд <span>Тема, розкладка, масштаб</span></button>
+        <button role="menuitem" data-settings="dom">Стакани <span>Кластер, рядки, стрічка</span></button>
+        <button role="menuitem" data-settings="chart">Графіки <span>Таймфрейм, обсяги</span></button>
+        <button role="menuitem" data-settings="hotkeys">Гарячі клавіші <span>Команди прототипу</span></button>
+      </div>
+    </div>
+    <span class="connection-status" role="status"><i class="offline-dot" aria-hidden="true"></i>Binance · без підключення</span>
   </nav>
   <main id="viewport" aria-label="Модульний робочий простір"><div id="scene"><div id="dock-preview" hidden></div></div></main>
-  <footer class="statusbar"><span><i class="offline-dot"></i>Binance · без підключення</span><span id="module-count"></span><span id="save-state">Локальний макет</span><span class="status-right">2560 × 1440 <span class="status-divider">/</span> <span id="scale-label"></span> <span class="status-divider">/</span> <span id="units-label">Обсяги · USDT</span></span></footer>
   <div id="tooltip" role="tooltip" hidden></div><div id="toast" role="status" aria-live="polite" hidden></div>
-  <dialog id="add-dialog"><form id="add-form"><div class="dialog-header"><h2>Додати модуль</h2><button type="button" data-close="add-dialog" aria-label="Закрити">×</button></div><div class="fields">
-    <label>Модуль<select name="type"><option value="dom">Стакан</option><option value="chart">Графік</option></select></label>
-    <label>Інструмент<select name="symbol"><option>BTCUSDT</option><option>ETHUSDT</option><option>SOLUSDT</option><option>XRPUSDT</option></select></label>
-    <label>Ринок<select name="market"><option value="F">Ф’ючерс</option><option value="S">Спот · спостереження</option></select></label>
-  </div><p class="secondary">Новий модуль пристикується праворуч від активного. Перетягніть заголовок, щоб змінити розташування.</p><div class="dialog-actions"><button type="button" data-close="add-dialog">Скасувати</button><button class="accent" type="submit">Додати</button></div></form></dialog>
-  <dialog id="settings-dialog"><div class="dialog-header"><h2>Вигляд робочого простору</h2><button data-close="settings-dialog" aria-label="Закрити">×</button></div>
-    <div class="settings-fields"><label>Тема<select id="theme"><option value="system">Системна</option><option value="light">Світла</option><option value="dark">Темна</option></select></label><label>Щільність DOM<select id="density"><option value="18">Щільно · 18 px</option><option value="20" selected>Стандартно · 20 px</option><option value="24">Вільніше · 24 px</option></select></label>
-    <label>Розмір цифр<select id="font-size"><option value="12">12 px</option><option value="13" selected>13 px</option><option value="14">14 px</option></select></label>
-    <p class="secondary">Модулі стикуються без перекриття. Переміщуйте спільні межі, щоб змінювати їхні розміри.</p>
-    <label class="check-label"><input id="reduced-motion" type="checkbox">Зменшити рух інтерфейсу</label></div>
-    <p class="secondary">Зміни застосовуються до всіх стаканів. Усі ринкові значення — умовний статичний приклад.</p><div class="dialog-actions"><button class="accent" data-close="settings-dialog">Готово</button></div>
-  </dialog>
   <script src="app.js"></script>
 </body>
 </html>
