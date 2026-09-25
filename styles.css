@@ -720,7 +720,7 @@ dialog::backdrop{background:var(--smoke)}
   line-height:15px;
   text-align:center;
   color:var(--fg-muted);
-  font-size:8px;
+  font-size:9px;
   font-weight:600;
   letter-spacing:.04em
 }
@@ -732,8 +732,9 @@ dialog::backdrop{background:var(--smoke)}
   padding:0 1px;
   border:0;
   border-radius:3px;
-  color:var(--fg-secondary);
-  font-size:10px;
+  color:var(--fg-primary);
+  font-size:11px;
+  font-weight:500;
   font-variant-numeric:tabular-nums;
   line-height:1
 }

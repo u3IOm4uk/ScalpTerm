@@ -351,7 +351,7 @@
 
     const firstRow=grid.querySelector('.dom-row');
     const tapeWidth=firstRow?.querySelector('.tape-lane')?.clientWidth||0;
-    if(picker){picker.style.left=((firstRow?.querySelector('.cluster')?.clientWidth||0)+2)+'px';picker.style.width=Math.max(0,tapeWidth-4)+'px';}
+    if(picker){const pickerWidth=Math.max(0,Math.min(32,tapeWidth-2));picker.style.left=((firstRow?.querySelector('.cluster')?.clientWidth||0)+(tapeWidth-pickerWidth)/2)+'px';picker.style.width=pickerWidth+'px';}
     const rightFixed=(firstRow?.querySelector('.depth')?.clientWidth||0)+(firstRow?.querySelector('.price')?.clientWidth||0);
     const count=Math.max(1,Math.floor(tapeWidth/7));
     for(let age=0;age<count;age++) {
