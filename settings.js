@@ -2,10 +2,11 @@
 (() => {
   const $ = id => document.getElementById(id);
   const category = new URLSearchParams(location.search).get('category');
+  const workspaceId = new URLSearchParams(location.search).get('workspace');
   let state = null, activeTab = 0, pendingImport = null, sequence = 0;
   const pending = new Map();
   const clientId=crypto.randomUUID();
-  const channel=new BroadcastChannel('scalpterm-settings-v1');
+  const channel=new BroadcastChannel('scalpterm-settings-v1'+(workspaceId?`-${workspaceId}`:''));
   const option = (value,label) => `<option value="${value}">${label}</option>`;
   const select = (key,label,choices,help='') => `<label class="setting-field"><span>${label}</span><select data-setting="${key}">${choices.map(([value,text])=>option(value,text)).join('')}</select>${help?`<small>${help}</small>`:''}</label>`;
   const checkbox = (key,label,help='') => `<label class="setting-check"><input type="checkbox" data-setting="${key}"><span><strong>${label}</strong>${help?`<small>${help}</small>`:''}</span></label>`;
@@ -14,17 +15,18 @@
   const button = (action,label,value='') => `<button type="button" data-action="${action}"${value?` data-value="${value}"`:''}>${label}</button>`;
 
   const sections = {
-    view: {
-      title:'Вигляд',description:'Оформлення робочого простору та розміщення модулів.',tabs:[
+    general: {
+      title:'Загальні',description:'Оформлення, розкладка й масштаб робочого простору.',tabs:[
         {label:'Тема',render:()=>card('Тема інтерфейсу',select('theme','Тема',[['system','Як у системі'],['light','Світла'],['dark','Темна']],'Вибір відразу застосовується до термінала та цього вікна.'))},
         {label:'Розкладка',render:()=>card('Розташування модулів',
           `<div class="setting-actions">${button('align','Однакова ширина груп','groups')}${button('align','Однакова висота графіків','charts')}</div>`+
           `<p class="setting-note">Для вирівнювання вибраного блока спершу позначте його модулі в терміналі через Ctrl + клік.</p>`+
           `<div class="setting-actions">${button('align','Порівну поруч','horizontal')}${button('align','Порівну вертикально','vertical')}</div>`+
+          `<div class="setting-actions">${button('undo-layout','Скасувати останню зміну')}</div>`+
           checkbox('locked','Фіксувати розкладку','Забороняє перетягування, зміну розміру й додавання модулів.')+
           card('Шаблон і перенесення розкладки',
           `${button('reset-layout','Відновити шаблон 4 графіки + 8 DOM')}`+
-          `<p class="setting-note">Шаблон замінить поточне розміщення; дію можна скасувати через «Основне» або Ctrl + Z.</p>`+
+          `<p class="setting-note">Шаблон замінить поточне розміщення; дію можна скасувати через кнопку вище або Ctrl + Z.</p>`+
           `<div class="setting-actions">${button('export','Експортувати JSON')}<label class="file-button">Обрати JSON для імпорту<input id="import-file" type="file" accept=".json,application/json"></label></div>`+
           `<p id="import-preview" class="setting-note" hidden></p><button id="apply-import" type="button" data-action="import" disabled hidden>Застосувати імпорт</button>`))},
         {label:'Масштаб і щільність',render:()=>card('Робочий простір',select('zoom','Масштаб',[['fit','Вмістити все · 100%'],['0.75','75%'],['0.5','50%']],'Ширина й висота модулів підлаштовуються під вікно; масштаб зменшується лише вручну.'))+
@@ -46,6 +48,19 @@
         {label:'Синхронізація',render:()=>card('Інструмент групи',note('У новій групі графік і два стакани використовують один інструмент. Його вибір у будь-якому модулі групи оновлює інші два.')+note('Таймфрейми графіка та кожного стакана залишаються незалежними.'))}
       ]
     },
+    modules: {
+      title:'Стакан / Графік',description:'Параметри модулів і подання ринкових даних.',tabs:[
+        {label:'Загальні',render:()=>card('Групи модулів',note('У новій групі графік, ф’ючерсний і спотовий стакани використовують один інструмент. Вибір інструмента в будь-якому модулі групи оновлює інші два.'))+card('Незалежні параметри',note('Таймфрейм графіка та таймфрейм кластера кожного стакана налаштовуються окремо. Їхні типові значення задаються на вкладках «Графік» і «Стакан».')))},
+        {label:'Стакан',render:()=>sections.dom.tabs.map(tab=>tab.render()).join('')},
+        {label:'Графік',render:()=>sections.chart.tabs.slice(0,2).map(tab=>tab.render()).join('')}
+      ]
+    },
+    connections: {
+      title:'Налаштування підключень',description:'Стан джерела даних для цього вікна термінала.',tabs:[
+        {label:'Біржа',render:()=>card('Binance',note('Реальне підключення ще не налаштоване. Дані прототипу не надходять з біржі.'))},
+        {label:'Дані',render:()=>card('Локальний потік',note('Графіки й стакани зараз отримують синтетичні котирування та угоди. Команда «Основне → Оновлення даних» перезапускає цей потік.'))}
+      ]
+    },
     hotkeys: {
       title:'Гарячі клавіші',description:'Команди, які зараз працюють у прототипі.',tabs:[
         {label:'Основне',render:()=>card('Робочий простір',`<dl class="shortcut-list"><div><dt>Скасувати зміну компонування</dt><dd><kbd>Ctrl</kbd> + <kbd>Z</kbd></dd></div><div><dt>Закрити меню або відновити розгорнутий модуль</dt><dd><kbd>Esc</kbd></dd></div></dl>`)},
@@ -54,7 +69,7 @@
     }
   };
 
-  const section=sections[category]||sections.view;
+  const section=sections[category]||sections.general;
   document.title=`${section.title} · ScalpTerm`;
   $('window-title').textContent=section.title;
   $('window-description').textContent=section.description;
