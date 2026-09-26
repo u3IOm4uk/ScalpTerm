@@ -13,25 +13,27 @@
     <span class="separator"></span>
     <div class="menu-anchor"><button id="main-open" aria-haspopup="menu" aria-expanded="false">Основне</button>
       <div id="main-menu" class="popup" role="menu" hidden>
-        <div class="menu-label">Основний простір</div>
-        <button role="menuitem" id="save-now">Зберегти розкладку</button>
-        <button role="menuitem" id="undo" disabled>Скасувати останню дію</button>
+        <div class="menu-label">Підключення</div>
+        <button role="menuitem" id="connections-open">Налаштування підключень</button>
+        <button role="menuitem" id="reconnect">Перепідключення</button>
+        <button role="menuitem" id="refresh-data">Оновлення даних</button>
+        <hr>
+        <button role="menuitem" id="exit-app">Вийти</button>
       </div>
     </div>
-    <div class="menu-anchor add-anchor"><button id="add-open" class="accent" aria-haspopup="menu" aria-expanded="false">＋ Модуль</button>
-      <div id="add-menu" class="popup add-menu" role="menu" hidden><button role="menuitem" data-add="chart">Графік</button><button role="menuitem" data-add="dom">Стакан</button><button role="menuitem" data-add="group">Група</button></div>
+    <div class="menu-anchor add-anchor"><button id="add-open" aria-haspopup="menu" aria-expanded="false">Вікно</button>
+      <div id="add-menu" class="popup add-menu" role="menu" hidden><button role="menuitem" id="new-window">Нове вікно</button><hr><button role="menuitem" data-add="chart">Графік</button><button role="menuitem" data-add="dom">Стакан</button><button role="menuitem" data-add="group">Група</button></div>
     </div>
     <div class="menu-anchor"><button id="settings-open" aria-haspopup="menu" aria-expanded="false">Налаштування</button>
       <div id="settings-menu" class="popup settings-menu" role="menu" hidden>
-        <button role="menuitem" data-settings="view">Вигляд <span>Тема, розкладка, масштаб</span></button>
-        <button role="menuitem" data-settings="dom">Стакани <span>Кластер, рядки, стрічка</span></button>
-        <button role="menuitem" data-settings="chart">Графіки <span>Таймфрейм, обсяги</span></button>
+        <button role="menuitem" data-settings="general">Загальні <span>Оформлення та робочий простір</span></button>
+        <button role="menuitem" data-settings="modules">Стакан / Графік <span>Загальні, стакан, графік</span></button>
         <button role="menuitem" data-settings="hotkeys">Гарячі клавіші <span>Команди прототипу</span></button>
       </div>
     </div>
     <span class="connection-status" role="status"><i class="offline-dot" aria-hidden="true"></i>Binance · без підключення</span>
   </nav>
-  <main id="viewport" aria-label="Модульний робочий простір"><div id="scene"><div id="dock-preview" hidden></div></div></main>
+  <main id="viewport" aria-label="Модульний робочий простір"><div id="scene"><div id="dock-preview" hidden></div></div><div id="empty-workspace" hidden><strong>Порожнє вікно</strong><span>Додайте графік, стакан або групу через меню «Вікно».</span></div></main>
   <div id="tooltip" role="tooltip" hidden></div><div id="toast" role="status" aria-live="polite" hidden></div>
   <script src="app.js"></script>
 </body>

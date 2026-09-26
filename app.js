@@ -2,7 +2,8 @@
 (() => {
   const $ = id => document.getElementById(id);
   const scene = $('scene'), viewport = $('viewport');
-  const KEY = 'scalpterm-design-01-docked-v2';
+  const workspaceId=new URLSearchParams(location.search).get('workspace');
+  const KEY = 'scalpterm-design-01-docked-v2'+(workspaceId?`-${workspaceId}`:'');
   const instruments = {
     BTCUSDT: {price:64120,step:1,digits:0,range:185},
     ETHUSDT: {price:2640.20,step:.05,digits:2,range:12},
@@ -17,11 +18,11 @@
   let modules = [], serial = 0, scale = 1, selected = new Set(), active = null;
   let locked = false, rowHeight = 20, digitSize = 13, depthMaxVolume = 115000;
   let defaultClusterFrame = '1m', defaultChartFrame = '1m', showChartVolume = true, tapeScale = 1;
-  let zoom = 'fit', theme = 'system', history = [], drag = null, maximized = null, toastTimer;
+  let zoom = 'fit', theme = 'system', history = [], drag = null, maximized = null, toastTimer, reconnectTimer;
   let tree = null, splitSerial = 0, splitDrag = null, canvasW = 0, canvasH = 0;
   const elements = new Map();
   const settingsWindows = new Map();
-  const settingsChannel = new BroadcastChannel('scalpterm-settings-v1');
+  const settingsChannel = new BroadcastChannel('scalpterm-settings-v1'+(workspaceId?`-${workspaceId}`:''));
   const fmt = (v, d) => v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:false});
   const short = v => v >= 1000000 ? (v/1000000).toFixed(1)+'m' : v >= 1000 ? (v/1000).toFixed(v>=10000?0:1)+'k' : String(Math.round(v));
   function random(seed) { return () => { seed = (Math.imul(seed,1664525)+1013904223) >>> 0; return seed/4294967296; }; }
@@ -96,7 +97,7 @@
   }
   function notify(message) { clearTimeout(toastTimer); $('toast').textContent=message; $('toast').hidden=false; toastTimer=setTimeout(()=>$('toast').hidden=true,3500); }
   function snapshot() { return JSON.stringify({modules,tree}); }
-  function remember() { history.push(snapshot()); if(history.length>30) history.shift(); $('undo').disabled=false; }
+  function remember() { history.push(snapshot()); if(history.length>30) history.shift(); }
   function save() {
       try {localStorage.setItem(KEY,JSON.stringify({modules,tree,locked,rowHeight,digitSize,defaultClusterFrame,defaultChartFrame,showChartVolume,tapeScale,depthMaxVolume,zoom,theme}));return true;}
       catch { notify('Збереження недоступне');return false; }
@@ -182,6 +183,7 @@
   function render() {
     elements.forEach(el=>el.remove()); elements.clear();
     relayout();
+    $('empty-workspace').hidden=modules.length>0;
     for(const m of modules) {
       const el=document.createElement('section');el.className='module';el.dataset.id=m.id;el.setAttribute('aria-label',`${m.type==='chart'?'Графік':'Стакан'} ${m.symbol||'без інструмента'} ${m.market==='F'?'ф’ючерс':m.market==='S'?'спот':'без ринку'}`);
       setRect(el,m);
@@ -190,8 +192,8 @@
       const marketText=m.market==='S'?'SPOT':'FUT';
       const nextMarket=m.market==='F'?'спот':'ф’ючерс';
       const marketControl=`<button type="button" class="market-tag market-toggle ${m.market==='S'?'spot':''}" aria-label="Ринок: ${m.market==='S'?'спот':'ф’ючерс'}. Натисніть, щоб обрати ${nextMarket}" title="Перемкнути на ${nextMarket}">${marketText}</button>`;
-      const timeframeControl=m.type==='chart'?'<select class="chart-timeframe-picker" aria-label="Таймфрейм графіка" title="Таймфрейм графіка"><option value="1m">1 хв</option><option value="5m">5 хв</option><option value="15m">15 хв</option></select>':'';
-      el.innerHTML=`<div class="module-header ${m.type==='chart'?'chart-header':''}"><span class="group-tag">${m.group}</span><span class="symbol-control">${exchangeIcon}<select class="module-symbol-picker" aria-label="Інструмент модуля">${symbolOptions}</select></span>${timeframeControl}${marketControl}<span class="module-actions"><button data-action="maximize" aria-label="Розгорнути модуль" title="Розгорнути / відновити">⛶</button><button data-action="close" aria-label="Закрити модуль" title="Закрити модуль">×</button></span></div><div class="module-content"></div><div class="module-footer"></div>`;
+      const timeframeControl=`<select class="${m.type==='chart'?'chart':'dom'}-timeframe-picker" aria-label="Таймфрейм ${m.type==='chart'?'графіка':'кластера'}" title="Таймфрейм ${m.type==='chart'?'графіка':'кластера'}"><option value="1m">1 хв</option><option value="5m">5 хв</option><option value="15m">15 хв</option></select>`;
+      el.innerHTML=`<div class="module-header ${m.type==='chart'?'chart-header':'dom-header'}"><span class="group-tag">${m.group}</span><span class="symbol-control">${exchangeIcon}<select class="module-symbol-picker" aria-label="Інструмент модуля">${symbolOptions}</select></span>${timeframeControl}${marketControl}<span class="module-actions"><button data-action="maximize" aria-label="Розгорнути модуль" title="Розгорнути / відновити">⛶</button><button data-action="close" aria-label="Закрити модуль" title="Закрити модуль">×</button></span></div><div class="module-content"></div><div class="module-footer"></div>`;
       if(m.group!=='—'){
         const tag=el.querySelector('.group-tag');
         const index=m.group.length===1?m.group.charCodeAt(0)-65:Number(m.group.slice(1))-1;
@@ -222,8 +224,8 @@
           picker.addEventListener('click',event=>{const button=event.target.closest('[data-order-size]');if(!button)return;m.orderSize=Number(button.dataset.orderSize);picker.querySelectorAll('[data-order-size]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));save();});
           body.append(picker);
         }
-        footer.innerHTML=`<button class="dom-footer-button" data-action="center" title="Повернути до найкращих цін">◎ До ринку</button><label class="cluster-frame">Кластер <select aria-label="Таймфрейм кластера"><option value="1m">1 хв</option><option value="5m">5 хв</option><option value="15m">15 хв</option></select></label><span class="right">Крок ${m.symbol?fmt(instruments[m.symbol].step,instruments[m.symbol].digits):'—'}</span>`;
-        const frameSelect=footer.querySelector('.cluster-frame select');frameSelect.value=m.clusterTimeframe||'1m';
+        footer.innerHTML=`<button class="dom-footer-button" data-action="center" title="Повернути до найкращих цін">◎ До ринку</button><span class="right">Крок ${m.symbol?fmt(instruments[m.symbol].step,instruments[m.symbol].digits):'—'}</span>`;
+        const frameSelect=el.querySelector('.dom-timeframe-picker');frameSelect.value=m.clusterTimeframe||'1m';
         frameSelect.setAttribute('aria-label',`Таймфрейм кластера ${m.symbol||'без інструмента'}, ${m.market==='F'?'ф’ючерс':m.market==='S'?'спот':'без ринку'}`);
         frameSelect.onchange=e=>{m.clusterTimeframe=e.target.value;drawDom(m,el);save();};
         const grid=body.querySelector('.dom-grid');grid.addEventListener('wheel',e=>{if(e.ctrlKey)return;e.preventDefault();m.offset+=Math.sign(e.deltaY)*3;drawDom(m,el);save();},{passive:false});
@@ -446,9 +448,16 @@
   $('main-open').onclick=()=>toggleMenu('main');
   $('settings-open').onclick=()=>toggleMenu('settings');
   document.addEventListener('click',e=>{if(!e.target.closest('.menu-anchor'))closeMenu();});
+  function connectionStatus(message){document.querySelector('.connection-status').innerHTML=`<i class="offline-dot" aria-hidden="true"></i>${message}`;}
+  $('connections-open').onclick=()=>{closeMenu();openSettings('connections');};
+  $('reconnect').onclick=()=>{
+    closeMenu();clearTimeout(reconnectTimer);connectionStatus('Binance · перепідключення…');
+    reconnectTimer=setTimeout(()=>{connectionStatus('Binance · без підключення');notify('Реальне підключення до Binance ще не налаштовано');},1200);
+  };
+  $('refresh-data').onclick=()=>{closeMenu();marketStreams.clear();modules.forEach(m=>{const el=elements.get(m.id);if(el&&m.symbol)redraw(m,el);});notify('Синтетичні дані оновлено');};
+  $('exit-app').onclick=()=>{closeMenu();window.close();setTimeout(()=>{if(!window.closed)notify('Закрийте вкладку, щоб вийти з прототипу');},100);};
   function resetLayout(){if(locked){notify('Спершу розблокуйте розкладку');return false;}remember();exitMax();initial();selected.clear();active=null;render();save();notify('Застосовано шаблон 4 + 8 · попередній простір можна відновити');return true;}
-  $('undo').onclick=()=>{if(!history.length)return;exitMax();const prev=JSON.parse(history.pop());modules=prev.modules;tree=prev.tree;serial=Math.max(serial,...modules.map(m=>m.id));selected.clear();active=null;$('undo').disabled=!history.length;render();save();closeMenu();};
-  $('save-now').onclick=()=>{const saved=save();closeMenu();if(saved)notify('Робочий простір збережено локально');};
+  function undoLayout(){if(!history.length)return false;exitMax();const prev=JSON.parse(history.pop());modules=prev.modules;tree=prev.tree;serial=Math.max(serial,...modules.map(m=>m.id));selected.clear();active=null;render();save();closeMenu();return true;}
   function openAddMenu(){closeMenu();$('add-menu').hidden=false;$('add-open').setAttribute('aria-expanded','true');}
   const addAnchor=document.querySelector('.add-anchor');
   addAnchor.addEventListener('pointerenter',openAddMenu);
@@ -456,6 +465,14 @@
   addAnchor.addEventListener('focusin',openAddMenu);
   addAnchor.addEventListener('focusout',e=>{if(!addAnchor.contains(e.relatedTarget))closeMenu();});
   $('add-open').onclick=openAddMenu;
+  $('new-window').onclick=()=>{
+    const id=crypto.randomUUID(),url=new URL('index.html',location.href);
+    url.searchParams.set('workspace',id);
+    const popup=window.open(url.href,'scalpterm-workspace-'+id,'popup=yes,width=1200,height=800,resizable=yes');
+    closeMenu();
+    if(!popup){notify('Браузер заблокував нове вікно');return;}
+    popup.focus();
+  };
   function nextGroupLabel(){const used=new Set(modules.map(m=>m.group));for(let i=65;i<=90;i++){const label=String.fromCharCode(i);if(!used.has(label))return label;}let n=27;while(used.has(`G${n}`))n++;return `G${n}`;}
   function addModule(kind){
     if(locked){notify('Спершу розблокуйте розкладку');closeMenu();return;}
@@ -483,7 +500,8 @@
     const existing=settingsWindows.get(category);
     if(existing&&!existing.closed){existing.focus();return;}
     const url=new URL('settings.html',location.href);url.searchParams.set('category',category);
-    const popup=window.open(url.href,'scalpterm-settings-'+category,'popup=yes,width=760,height=640,resizable=yes,scrollbars=yes');
+    if(workspaceId)url.searchParams.set('workspace',workspaceId);
+    const popup=window.open(url.href,'scalpterm-settings-'+(workspaceId||'main')+'-'+category,'popup=yes,width=760,height=640,resizable=yes,scrollbars=yes');
     if(!popup){notify('Браузер заблокував вікно налаштувань');return;}
     settingsWindows.set(category,popup);popup.focus();
   }
@@ -509,6 +527,7 @@
       if(request.action==='get')data=settingsState();
       else if(request.action==='set')ok=setSetting(request.key,request.value);
       else if(request.action==='align'){if(!['horizontal','vertical','groups','charts'].includes(request.value))ok=false;else align(request.value);}
+      else if(request.action==='undo-layout')ok=undoLayout();
       else if(request.action==='reset-layout')ok=resetLayout();
       else if(request.action==='apply-all-cluster'){if(!Object.hasOwn(clusterFrames,defaultClusterFrame))ok=false;else{modules.filter(m=>m.type==='dom').forEach(m=>m.clusterTimeframe=defaultClusterFrame);render();save();}}
       else if(request.action==='apply-all-chart'){modules.filter(m=>m.type==='chart').forEach(m=>m.timeframe=defaultChartFrame);render();save();}
@@ -535,11 +554,13 @@
     const target=e.target.closest('[data-tip]');if(!target||drag){$('tooltip').hidden=true;return;}
     const tip=$('tooltip');tip.textContent=target.dataset.tip;tip.hidden=false;tip.style.left=Math.max(8,Math.min(e.clientX+14,window.innerWidth-tip.offsetWidth-10))+'px';tip.style.top=Math.max(8,Math.min(e.clientY+14,window.innerHeight-tip.offsetHeight-30))+'px';
   });scene.addEventListener('pointerleave',()=>$('tooltip').hidden=true);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){exitMax();closeMenu();$('tooltip').hidden=true;}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.target.closest('input,select')){e.preventDefault();$('undo').click();}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){exitMax();closeMenu();$('tooltip').hidden=true;}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.target.closest('input,select')){e.preventDefault();undoLayout();}});
   const themeMedia=window.matchMedia('(prefers-color-scheme: dark)');
   themeMedia.addEventListener?.('change',()=>{if(theme==='system')applyTheme();});
   window.addEventListener('resize',()=>{exitMax();relayout();modules.forEach(m=>{const el=elements.get(m.id);if(el){setRect(el,m);redraw(m,el);}});fit();});
-  if(!restore())initial();applySettings();render();
+  if(!restore()){if(workspaceId){modules=[];tree=null;}else initial();}
+  if(workspaceId)document.querySelector('.workspace-name').textContent='Нове вікно';
+  applySettings();render();
   window.setInterval(()=>{
     const activeStreams=new Set(modules.filter(m=>m.symbol&&m.market).map(m=>`${m.symbol}:${m.market}`));
     for(const key of activeStreams){const [symbol,market]=key.split(':');advanceMarketStream(getMarketStream(symbol,market));}
