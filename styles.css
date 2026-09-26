@@ -16,7 +16,7 @@
 .price{line-height:var(--row);padding-right:6px;text-align:right;background:#202329;color:#aeb4bd;border-left:1px solid #343840;font-size:var(--digits);font-variant-numeric:tabular-nums;white-space:nowrap}.price.major{color:#e2e6ec}
 .depth{position:relative;line-height:var(--row);padding-right:8px;text-align:right;color:#bec4cd;overflow:hidden;background:#1e2126;font-size:var(--digits)}.depth-bar{position:absolute;right:0;top:1px;bottom:1px;max-width:100%;background:#85505a38}.bid .depth-bar{background:#447e713a}.depth-amount{position:relative;z-index:1}.depth.heavy .depth-bar{background:#a16f514b}.depth.heavy .depth-amount{color:#d9bea1}
 .best-ask .price{background:#6c414b;color:#ffe5ea;font-weight:600}.best-bid .price{background:#315a51;color:#d2f2e9;font-weight:600}.best-ask .depth{background:#51313a44;color:#e4b7c0}.best-bid .depth{background:#294b4344;color:#b2d8cd}.best-ask:before,.best-bid:before{content:'';position:absolute;left:0;right:0;height:1px;background:#ad727e30;z-index:2}.best-bid:before{background:#69b7a530}
-.tape-lane{position:relative;border-right:1px solid #30343b}.trade-square{position:absolute;display:flex;align-items:center;justify-content:center;transform:translateY(-50%);background:#39705ec9;color:#d2eee5;border:1px solid #67b39d75;font-size:9px;z-index:3;border-radius:1px;cursor:default}.trade-square.sell{background:#804d58cb;border-color:#cd839078;color:#f4d8e0}.trade-square.old{opacity:.48}.trade-square:hover{z-index:5;outline:1px solid #e2e5e9;opacity:1}.dom-grid .axis-captions{position:absolute;bottom:6px;left:8px;color:#8b95a1;font-size:10px;pointer-events:none}.dom-row:hover .price{box-shadow:inset 2px 0 #a5b8c7;background:#3c444e;color:#fff}.dom-row:hover .depth{background:#313740}
+.tape-lane{position:relative;border-right:1px solid #30343b}.trade-square{position:absolute;display:flex;align-items:center;justify-content:center;transform:translateY(-50%);background:#39705ec9;color:#d2eee5;border:1px solid #67b39d75;font-size:9px;z-index:3;border-radius:1px;cursor:default}.trade-square.sell{background:#804d58cb;border-color:#cd839078;color:#f4d8e0}.trade-square:hover{z-index:5;outline:1px solid #e2e5e9;opacity:1}.dom-grid .axis-captions{position:absolute;bottom:6px;left:8px;color:#8b95a1;font-size:10px;pointer-events:none}.dom-row:hover .price{box-shadow:inset 2px 0 #a5b8c7;background:#3c444e;color:#fff}.dom-row:hover .depth{background:#313740}
 .offline-dot{display:inline-block;width:5px;height:5px;background:#8c929c;border-radius:50%;margin-right:6px}
 #tooltip{position:fixed;z-index:5000;pointer-events:none;border:1px solid #555c66;background:#30353d;box-shadow:0 6px 20px #0008;border-radius:4px;padding:8px 11px;font-size:12px;white-space:pre-line;line-height:1.55;color:#edf0f4;max-width:280px}
 #toast{position:fixed;bottom:43px;left:50%;transform:translateX(-50%);z-index:6000;background:#313942;border:1px solid #515d6b;box-shadow:0 8px 30px #0008;padding:10px 16px;border-radius:6px;font-size:12px;max-width:80vw}
@@ -201,8 +201,11 @@ hr{border-top-color:var(--line-subtle);margin:4px}
 }
 .depth-bar{background:var(--sell-subtle)}
 .bid .depth-bar{background:var(--buy-subtle)}
-.depth.heavy .depth-bar{background:#d29b522e}
-.depth.heavy .depth-amount{color:#e0c48f}
+.depth.heavy .depth-bar{background:#d6ac4d80}
+.depth.heavy .depth-amount{
+  color:var(--fg-primary);
+  font-weight:600
+}
 .best-ask .price{
   background:#3a2429;
   color:#ffd9df;
@@ -697,7 +700,8 @@ dialog::backdrop{background:var(--smoke)}
 .dom-row:hover .tape-lane{background:var(--surface-hover)}
 .tape-volume{display:none!important}
 .trade-square{
-  display:flex!important
+  display:flex!important;
+  opacity:var(--trade-opacity,1)
 }
 .order-size-picker{
   position:absolute;
@@ -874,3 +878,26 @@ dialog::backdrop{background:var(--smoke)}
 .connection-status .offline-dot{width:6px;height:6px;margin:0;background:var(--fg-muted)}
 #viewport{height:calc(100vh - 34px);border-bottom:1px solid var(--stroke-subtle)}
 #toast{bottom:12px}
+
+/* Compact DOM headers; keep the existing two-row layout for narrow modules. */
+@container (min-width:171px){
+  .module-header:not(.chart-header){height:24px;min-height:24px}
+  .module-header:not(.chart-header) .module-symbol-picker{height:20px;min-height:20px}
+}
+@media (hover:hover) and (pointer:fine){
+  .module-header:not(.chart-header) .module-actions{
+    opacity:0;
+    pointer-events:none
+  }
+  .module-header:not(.chart-header):is(:hover,:focus-within) .module-actions{
+    opacity:1;
+    pointer-events:auto
+  }
+}
+
+/* The same group badge color connects its DOMs and chart. */
+.group-tag[data-group]{
+  flex-shrink:0;
+  background:var(--group-color);
+  color:#161616
+}

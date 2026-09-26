@@ -35,6 +35,7 @@
       title:'Стакани',description:'Типові параметри DOM і подання умовних ринкових даних.',tabs:[
         {label:'Кластер',render:()=>card('Таймфрейм за замовчуванням',select('defaultClusterFrame','Для нових стаканів',[['1m','1 хвилина'],['5m','5 хвилин'],['15m','15 хвилин']],'Відкриті стакани зберігають власний вибір таймфрейму.')+button('apply-all-cluster','Застосувати до всіх відкритих стаканів'))+note('Кластер показує загальний виконаний обсяг на пройдених цінах поточної незавершеної свічки. Наведення відкриває Бід, Аск і Дельту.')},
         {label:'Рядки',render:()=>card('Щільність і цифри',select('rowHeight','Висота цінового рядка',[[18,'Щільно · 18 px'],[20,'Стандартно · 20 px'],[24,'Вільніше · 24 px']])+select('digitSize','Розмір цифр',[[12,'12 px'],[13,'13 px'],[14,'14 px']]))},
+        {label:'Заявки',render:()=>card('Шкала обсягу заявок','<label class="setting-field"><span>Максимальний обсяг, USDT</span><input type="number" data-setting="depthMaxVolume" min="1" step="any" required><small>Цей обсяг заповнює всю ширину колонки. Половина обсягу — половину ширини; більші значення обмежуються повною шириною. Застосовується до всіх стаканів.</small></label>')},
         {label:'Стрічка',render:()=>card('Квадрати угод',select('tapeScale','Розмір квадратів',[[.75,'Менші'],[1,'Звичайні'],[1.25,'Більші']],'Розмір усе одно обмежується фактичною шириною стрічки.'))+note('У прототипі стрічка містить демонстраційні угоди. Порядок колонок: кластер, стрічка, заявки, ціна.')}
       ]
     },
@@ -97,8 +98,9 @@
       return;
     }
     if(!control.matches('[data-setting]'))return;
+    if(control.type==='number'&&!control.reportValidity())return;
     let value=control.type==='checkbox'?control.checked:control.value;
-    if(['rowHeight','digitSize','tapeScale'].includes(control.dataset.setting))value=Number(value);
+    if(['rowHeight','digitSize','tapeScale','depthMaxVolume'].includes(control.dataset.setting))value=Number(value);
     try{await request('set',{key:control.dataset.setting,value});feedback('Зміни застосовано й збережено.');}
     catch(error){feedback(error.message,true);syncControls();}
   });

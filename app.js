@@ -11,10 +11,11 @@
   };
   const clusterFrames = {'1m':1,'5m':5,'15m':15};
   const orderSizes = [100,200,300,400,500];
+  const groupColors = ['#83b9ed','#b7a0e5','#dfbb70','#7cc7ce','#dba7cd','#a7b9da','#c3c882','#d5b29a'];
   const chartWidthDefault = 7, chartWidthMin = 3, chartWidthMax = 24;
   const chartPriceScaleMin = .5, chartPriceScaleMax = 4;
   let modules = [], serial = 0, scale = 1, selected = new Set(), active = null;
-  let locked = false, rowHeight = 20, digitSize = 13;
+  let locked = false, rowHeight = 20, digitSize = 13, depthMaxVolume = 115000;
   let defaultClusterFrame = '1m', defaultChartFrame = '1m', showChartVolume = true, tapeScale = 1;
   let zoom = 'fit', theme = 'system', history = [], drag = null, maximized = null, toastTimer;
   let tree = null, splitSerial = 0, splitDrag = null, canvasW = 0, canvasH = 0;
@@ -97,7 +98,7 @@
   function snapshot() { return JSON.stringify({modules,tree}); }
   function remember() { history.push(snapshot()); if(history.length>30) history.shift(); $('undo').disabled=false; }
   function save() {
-      try {localStorage.setItem(KEY,JSON.stringify({modules,tree,locked,rowHeight,digitSize,defaultClusterFrame,defaultChartFrame,showChartVolume,tapeScale,zoom,theme}));return true;}
+      try {localStorage.setItem(KEY,JSON.stringify({modules,tree,locked,rowHeight,digitSize,defaultClusterFrame,defaultChartFrame,showChartVolume,tapeScale,depthMaxVolume,zoom,theme}));return true;}
       catch { notify('Збереження недоступне');return false; }
   }
   function initial() {
@@ -142,6 +143,7 @@
       defaultChartFrame=['1m','5m','15m'].includes(s.defaultChartFrame)?s.defaultChartFrame:'1m';
       showChartVolume=s.showChartVolume!==false;
       tapeScale=[.75,1,1.25].includes(s.tapeScale)?s.tapeScale:1;
+      depthMaxVolume=Number.isFinite(s.depthMaxVolume)&&s.depthMaxVolume>=1?s.depthMaxVolume:115000;
       zoom=['fit','1'].includes(s.zoom)?'fit':['0.75','0.5'].includes(s.zoom)?s.zoom:'fit'; theme=['system','light','dark'].includes(s.theme)?s.theme:'system'; return true;
     } catch { return false; }
   }
@@ -190,6 +192,14 @@
       const marketControl=`<button type="button" class="market-tag market-toggle ${m.market==='S'?'spot':''}" aria-label="Ринок: ${m.market==='S'?'спот':'ф’ючерс'}. Натисніть, щоб обрати ${nextMarket}" title="Перемкнути на ${nextMarket}">${marketText}</button>`;
       const timeframeControl=m.type==='chart'?'<select class="chart-timeframe-picker" aria-label="Таймфрейм графіка" title="Таймфрейм графіка"><option value="1m">1 хв</option><option value="5m">5 хв</option><option value="15m">15 хв</option></select>':'';
       el.innerHTML=`<div class="module-header ${m.type==='chart'?'chart-header':''}"><span class="group-tag">${m.group}</span><span class="symbol-control">${exchangeIcon}<select class="module-symbol-picker" aria-label="Інструмент модуля">${symbolOptions}</select></span>${timeframeControl}${marketControl}<span class="module-actions"><button data-action="maximize" aria-label="Розгорнути модуль" title="Розгорнути / відновити">⛶</button><button data-action="close" aria-label="Закрити модуль" title="Закрити модуль">×</button></span></div><div class="module-content"></div><div class="module-footer"></div>`;
+      if(m.group!=='—'){
+        const tag=el.querySelector('.group-tag');
+        const index=m.group.length===1?m.group.charCodeAt(0)-65:Number(m.group.slice(1))-1;
+        tag.dataset.group=m.group;
+        tag.style.setProperty('--group-color',groupColors[index%groupColors.length]);
+        tag.title='Група '+m.group;
+        tag.setAttribute('aria-label','Група '+m.group);
+      }
       const symbolPicker=el.querySelector('.module-symbol-picker');symbolPicker.value=m.symbol||'';
       symbolPicker.onchange=e=>{const symbol=e.target.value||null;if(m.linkedGroup)modules.filter(item=>item.linkedGroup&&item.group===m.group).forEach(item=>item.symbol=symbol);else m.symbol=symbol;render();save();};
       el.querySelector('.market-toggle').onclick=()=>{m.market=m.market==='F'?'S':'F';render();save();};
@@ -335,7 +345,7 @@
     let html='';
     for(let i=0;i<rows;i++) {
       const level=middle-i+m.offset,priceTick=baseTick+level,price=priceTick*info.step,ask=level>=1,best=level===1?'best-ask':level===0?'best-bid':'',vol=stream.depth.get(priceTick)??demoDepthVolume(m.symbol,m.market,priceTick);
-      const width=Math.min(100,vol/115000*100),heavy=vol>95000;
+      const width=Math.min(100,vol/depthMaxVolume*100),heavy=vol>95000;
       const executed=clusterLevels.get(priceTick);
       let clusterHtml='<div class="cluster"></div>';
       if(executed){
@@ -353,14 +363,17 @@
     const tapeWidth=firstRow?.querySelector('.tape-lane')?.clientWidth||0;
     if(picker){const pickerWidth=Math.max(0,Math.min(40,tapeWidth-2));picker.style.left=(firstRow?.querySelector('.cluster')?.clientWidth||0)+'px';picker.style.width=pickerWidth+'px';}
     const rightFixed=(firstRow?.querySelector('.depth')?.clientWidth||0)+(firstRow?.querySelector('.price')?.clientWidth||0);
-    const count=Math.max(1,Math.floor(tapeWidth/7));
-    for(let age=0;age<count;age++) {
-      const trade=stream.trades.at(-1-age);if(!trade)break;
-      const row=middle-(trade.tick-baseTick)+m.offset,size=Math.min(tapeWidth-7,Math.max(3,Math.round(Math.sqrt(trade.volume/25)*tapeScale))),right=5+age*7;
-      if(size<3||row<0||row>=rows||right+size>tapeWidth-2||picker&&row*rowHeight+rowHeight/2+size/2>picker.offsetTop)continue;
+    let nextRight=5;
+    for(let age=0;age<stream.trades.length;age++) {
+      const trade=stream.trades.at(-1-age);
+      const row=middle-(trade.tick-baseTick)+m.offset,size=Math.min(28,tapeWidth-7,Math.max(3,Math.round(Math.sqrt(trade.volume/25)*tapeScale))),right=nextRight;
+      if(size<3||right+size>tapeWidth-2)break;
+      nextRight+=size+2;
+      if(row<0||row>=rows||picker&&row*rowHeight+rowHeight/2+size/2>picker.offsetTop)continue;
       const square=document.createElement('span');
-      square.className='trade-square'+(trade.isBuy?'':' sell')+(age>count*.7?' old':'');
+      square.className='trade-square'+(trade.isBuy?'':' sell');
       Object.assign(square.style,{width:size+'px',height:size+'px',right:(rightFixed+right)+'px',top:(row*rowHeight+rowHeight/2)+'px'});
+      square.style.setProperty('--trade-opacity',String(Math.max(.4,1-(right-5)/Math.max(1,tapeWidth-7)*.6)));
       square.dataset.tip=`Угода · ${trade.isBuy?'покупець':'продавець'}\nЦіна: ${fmt(trade.tick*info.step,info.digits)}\nОбсяг: ${trade.volume.toLocaleString('en-US')} USDT\nНові угоди — праворуч`;
       if(size>=23)square.textContent=short(trade.volume);
       grid.append(square);
@@ -465,7 +478,7 @@
     render();save();closeMenu();
   }
   document.querySelectorAll('#add-menu [data-add]').forEach(button=>button.onclick=()=>addModule(button.dataset.add));
-  function settingsState(){return {theme,zoom,locked,rowHeight,digitSize,defaultClusterFrame,defaultChartFrame,showChartVolume,tapeScale,selectionCount:selected.size,moduleCount:modules.length};}
+  function settingsState(){return {theme,zoom,locked,rowHeight,digitSize,defaultClusterFrame,defaultChartFrame,showChartVolume,tapeScale,depthMaxVolume,selectionCount:selected.size,moduleCount:modules.length};}
   function openSettings(category){
     const existing=settingsWindows.get(category);
     if(existing&&!existing.closed){existing.focus();return;}
@@ -485,6 +498,7 @@
     else if(key==='defaultChartFrame'&&['1m','5m','15m'].includes(value))defaultChartFrame=value;
     else if(key==='showChartVolume'&&typeof value==='boolean'){showChartVolume=value;modules.filter(m=>m.type==='chart').forEach(m=>redraw(m,elements.get(m.id)));}
     else if(key==='tapeScale'&&[.75,1,1.25].includes(value)){tapeScale=value;modules.filter(m=>m.type==='dom').forEach(m=>redraw(m,elements.get(m.id)));}
+    else if(key==='depthMaxVolume'&&Number.isFinite(value)&&value>=1){depthMaxVolume=value;modules.filter(m=>m.type==='dom').forEach(m=>redraw(m,elements.get(m.id)));}
     else return false;
     save();return true;
   }

@@ -14,6 +14,7 @@ html,body.settings-window{min-width:360px;min-height:100%;height:100%;overflow:h
 .setting-field{display:grid;grid-template-columns:minmax(160px,1fr) minmax(150px,210px);align-items:center;column-gap:14px;row-gap:4px;margin:10px 0;font-size:12px}
 .setting-field>span{font-weight:600;color:var(--fg-secondary)}
 .setting-field select{min-width:0;width:100%;min-height:28px;background:var(--surface-header);border-color:var(--stroke-default);font-size:12px}
+.setting-field input[type="number"]{min-width:0;width:100%;min-height:28px;padding:4px 6px;border:1px solid var(--stroke-default);border-radius:var(--radius-small);background:var(--surface-header);color:var(--fg-primary);font-size:12px}
 .setting-field small{grid-column:1/-1;color:var(--fg-muted);font-size:11px;line-height:1.45}
 .setting-check{display:flex;align-items:flex-start;gap:10px;margin:16px 0 5px;font-size:12px;cursor:pointer}
 .setting-check input{margin:2px 0 0;accent-color:var(--brand)}
