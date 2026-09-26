@@ -252,7 +252,7 @@
     canvas.addEventListener('pointermove',event=>{
       if(!dragAxis){canvas.style.cursor=axisAt(event)==='price'?'ns-resize':axisAt(event)==='time'?'ew-resize':'crosshair';return;}
       const delta=(dragAxis.axis==='price'?event.clientY-dragAxis.startY:event.clientX-dragAxis.startX)/dragAxis.displayScale;
-      const value=dragAxis.startValue*Math.exp(delta/140);
+      const value=dragAxis.startValue*Math.exp((dragAxis.axis==='price'?-delta:delta)/140);
       if(dragAxis.axis==='price')m.chartPriceScale=Math.max(chartPriceScaleMin,Math.min(chartPriceScaleMax,value));
       else m.chartCandleWidth=Math.max(chartWidthMin,Math.min(chartWidthMax,value));
       drawChart(m,el);
@@ -351,7 +351,7 @@
 
     const firstRow=grid.querySelector('.dom-row');
     const tapeWidth=firstRow?.querySelector('.tape-lane')?.clientWidth||0;
-    if(picker){const pickerWidth=Math.max(0,Math.min(32,tapeWidth-2));picker.style.left=((firstRow?.querySelector('.cluster')?.clientWidth||0)+(tapeWidth-pickerWidth)/2)+'px';picker.style.width=pickerWidth+'px';}
+    if(picker){const pickerWidth=Math.max(0,Math.min(40,tapeWidth-2));picker.style.left=(firstRow?.querySelector('.cluster')?.clientWidth||0)+'px';picker.style.width=pickerWidth+'px';}
     const rightFixed=(firstRow?.querySelector('.depth')?.clientWidth||0)+(firstRow?.querySelector('.price')?.clientWidth||0);
     const count=Math.max(1,Math.floor(tapeWidth/7));
     for(let age=0;age<count;age++) {
